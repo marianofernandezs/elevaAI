@@ -20,10 +20,10 @@ export default function IdeasPanel({ profile, ideas, onRefresh }: IdeasPanelProp
 
   return (
     <section className="surface p-6">
-      <div className="mb-5 flex items-center justify-between gap-3">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-xl font-bold text-slate-950">Generador de ideas</h3>
-          <p className="mt-2 text-sm text-slate-600">Ideas accionables para storytelling, autoridad y empleabilidad.</p>
+          <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Generador de ideas</h3>
+          <p className="mt-2 text-sm text-muted">Ideas accionables para storytelling, autoridad y empleabilidad.</p>
         </div>
         <button type="button" className="btn-secondary" onClick={handleRefresh} disabled={loading}>
           {loading ? "Actualizando..." : "Generar ideas"}
@@ -32,11 +32,11 @@ export default function IdeasPanel({ profile, ideas, onRefresh }: IdeasPanelProp
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {ideas.map((idea) => (
-          <article key={idea.id} className="rounded-3xl border border-slate-100 bg-slate-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">{idea.pillar}</p>
-            <h4 className="mt-3 text-lg font-bold text-slate-950">{idea.title}</h4>
-            <p className="mt-3 text-sm leading-7 text-slate-600">{idea.description}</p>
-            <div className="mt-4 inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+          <article key={idea.id} className="soft-card p-5">
+            <p className="eyebrow">{idea.pillar}</p>
+            <h4 className="mt-3 text-lg font-bold" style={{ color: "var(--text-primary)" }}>{idea.title}</h4>
+            <p className="mt-3 text-sm leading-7 text-muted">{idea.description}</p>
+            <div className="badge-pill mt-4" style={{ letterSpacing: "0.02em", textTransform: "none" }}>
               {idea.angle}
             </div>
           </article>

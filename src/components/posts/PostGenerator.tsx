@@ -42,8 +42,8 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
     <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
       <div className="surface p-6">
         <div className="mb-5">
-          <h3 className="text-xl font-bold text-slate-950">Generador de posts LinkedIn</h3>
-          <p className="mt-2 text-sm text-slate-600">
+          <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Generador de posts LinkedIn</h3>
+          <p className="mt-2 text-sm text-muted">
             Genera posts con hook, desarrollo, CTA y hashtags alineados a tu posicionamiento.
           </p>
         </div>
@@ -101,7 +101,7 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
 
       <div className="space-y-6">
         <div className="surface p-6">
-          <h3 className="text-lg font-bold text-slate-950">Reescritor de contenido</h3>
+          <h3 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Reescritor de contenido</h3>
           <textarea
             className="input mt-4 min-h-36"
             value={sourceText}
@@ -110,17 +110,21 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
           <button type="button" className="btn-secondary mt-4" onClick={handleRewrite} disabled={loading}>
             Reescribir
           </button>
-          {rewrittenText && <pre className="mt-4 whitespace-pre-wrap rounded-3xl bg-slate-50 p-4 text-sm text-slate-700">{rewrittenText}</pre>}
+          {rewrittenText && (
+            <pre className="soft-card mt-4 whitespace-pre-wrap p-4 text-sm" style={{ color: "var(--text-secondary)" }}>
+              {rewrittenText}
+            </pre>
+          )}
         </div>
 
         <div className="surface p-6">
-          <h3 className="text-lg font-bold text-slate-950">Hooks sugeridos</h3>
+          <h3 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Hooks sugeridos</h3>
           <div className="mt-4 space-y-3">
             {hooks.length === 0 ? (
-              <p className="text-sm text-slate-500">Genera hooks para desbloquear nuevas aperturas.</p>
+              <p className="text-sm text-soft">Genera hooks para desbloquear nuevas aperturas.</p>
             ) : (
               hooks.map((hook) => (
-                <div key={hook} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <div key={hook} className="soft-card px-4 py-3 text-sm" style={{ color: "var(--text-secondary)" }}>
                   {hook}
                 </div>
               ))

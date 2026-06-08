@@ -29,16 +29,14 @@ export default function ProfileForm({ profile, onChange }: ProfileFormProps) {
 
   return (
     <section className="surface p-6">
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-xl font-bold text-slate-950">Perfil profesional</h3>
-          <p className="mt-2 text-sm text-slate-600">
+          <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Perfil profesional</h3>
+          <p className="mt-2 text-sm text-muted">
             Este contexto alimenta tus prompts, recomendaciones y análisis.
           </p>
         </div>
-        <div className="rounded-full bg-amber-50 px-4 py-2 text-xs font-semibold text-amber-700">
-          Español-first
-        </div>
+        <div className="badge-pill">Español-first</div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -55,7 +53,7 @@ export default function ProfileForm({ profile, onChange }: ProfileFormProps) {
         ))}
       </div>
 
-      <button type="button" className="btn-primary mt-6" onClick={() => void onChange(draft)}>
+      <button type="button" className="btn-primary mt-6 w-full sm:w-auto" onClick={() => void onChange(draft)}>
         Guardar perfil
       </button>
     </section>

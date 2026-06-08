@@ -170,18 +170,18 @@ export default function DashboardPage() {
   return (
     <AppShell email={userEmail} onSignOut={signOut}>
       <div className="surface overflow-hidden">
-        <div className="grid gap-5 border-b border-slate-100 p-6 lg:grid-cols-[1fr_260px] lg:items-center">
+        <div className="grid gap-5 p-6 lg:grid-cols-[1fr_300px] lg:items-center">
           <SectionHeading
             eyebrow="Dashboard"
             title="Tu centro de control profesional"
             description="Gestiona perfil, contenido, CV, skill gap y roadmap desde una sola experiencia enfocada en tiempo al mercado."
           />
-          <div className="rounded-3xl bg-amber-50 p-5 text-sm leading-7 text-slate-700">{banner}</div>
+          <div className="soft-card p-5 text-sm leading-7 text-muted">{banner}</div>
         </div>
       </div>
 
       {isLoading ? (
-        <div className="surface p-6 text-sm font-semibold text-slate-600">
+        <div className="surface p-6 text-sm font-semibold text-muted">
           Cargando datos desde Supabase...
         </div>
       ) : (

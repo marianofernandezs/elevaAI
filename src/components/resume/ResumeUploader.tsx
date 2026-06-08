@@ -20,25 +20,29 @@ export default function ResumeUploader({ resume, onUpload }: ResumeUploaderProps
   return (
     <section className="surface p-6">
       <div className="mb-5">
-        <h3 className="text-xl font-bold text-slate-950">Upload de CV</h3>
-        <p className="mt-2 text-sm text-slate-600">
+        <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Upload de CV</h3>
+        <p className="mt-2 text-sm text-muted">
           MVP listo para conectar con Supabase Storage y extracción automática de texto.
         </p>
       </div>
 
-      <label className="flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-3xl border border-dashed border-amber-300 bg-amber-50/60 px-6 text-center">
-        <span className="text-base font-semibold text-slate-800">Sube tu CV en PDF o DOCX</span>
-        <span className="mt-2 text-sm text-slate-600">Haz clic para seleccionar un archivo</span>
+      <label
+        className="flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-[1.75rem] border border-dashed px-6 text-center transition hover:-translate-y-0.5"
+        style={{ borderColor: "color-mix(in srgb, var(--accent) 38%, transparent)", background: "var(--accent-soft)" }}
+      >
+        <span className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Sube tu CV en PDF o DOCX</span>
+        <span className="mt-2 text-sm text-muted">Haz clic para seleccionar un archivo</span>
         <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFileChange} />
       </label>
 
       {resume && (
-        <div className="mt-5 rounded-3xl bg-slate-50 p-5">
-          <p className="text-sm font-semibold text-slate-800">{resume.fileName}</p>
-          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-amber-700">Subido el {resume.uploadedAt}</p>
+        <div className="soft-card mt-5 p-5">
+          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{resume.fileName}</p>
+          <p className="eyebrow mt-1">Subido el {resume.uploadedAt}</p>
           {resume.publicUrl && (
             <a
-              className="mt-3 inline-flex text-sm font-semibold text-amber-700"
+              className="mt-3 inline-flex text-sm font-semibold"
+              style={{ color: "var(--accent)" }}
               href={resume.publicUrl}
               target="_blank"
               rel="noreferrer"
@@ -46,7 +50,7 @@ export default function ResumeUploader({ resume, onUpload }: ResumeUploaderProps
               Abrir archivo en Storage
             </a>
           )}
-          <p className="mt-4 text-sm leading-7 text-slate-600">{resume.extractedText}</p>
+          <p className="mt-4 text-sm leading-7 text-muted">{resume.extractedText}</p>
         </div>
       )}
     </section>
