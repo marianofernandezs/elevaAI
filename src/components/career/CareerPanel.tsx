@@ -101,7 +101,10 @@ function ListCard({ title, items }: { title: string; items: string[] }) {
       <h5 className="text-sm font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-primary)" }}>{title}</h5>
       <ul className="mt-4 space-y-3 text-sm leading-7 text-muted">
         {items.map((item) => (
-          <li key={item}>• {item}</li>
+          <li key={item} className="flex items-start gap-3 break-words">
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: "var(--accent)" }} />
+            <span>{item}</span>
+          </li>
         ))}
       </ul>
     </div>

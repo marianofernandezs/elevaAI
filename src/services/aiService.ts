@@ -37,6 +37,15 @@ interface AIConnectionStatus {
   message: string;
 }
 
+interface SkillAssessmentPayload {
+  competitivenessScore?: number;
+  currentSkills?: unknown;
+  missingSkills?: unknown;
+  emergingSkills?: unknown;
+  strengths?: unknown;
+  weaknesses?: unknown;
+}
+
 function getProviderConfig(): ProviderConfig {
   const env = import.meta.env as Record<string, string | undefined>;
   const provider = (env.VITE_AI_PROVIDER as AIProvider | undefined) ?? "openrouter";
@@ -161,6 +170,132 @@ function profileContext(profile: UserProfile) {
   return `Profesión: ${profile.profession}. Industria: ${profile.industry}. Experiencia: ${profile.yearsOfExperience} años. Objetivo profesional: ${profile.careerGoal}. Audiencia: ${profile.targetAudience}. País: ${profile.country}. Estilo: ${profile.communicationStyle}.`;
 }
 
+function normalizeAssessmentItem(item: string) {
+  return item
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .replace(/\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/^\s*[-*•#>\d.]+\s*/g, "")
+    .replace(/\|/g, " ")
+    .replace(/_{2,}/g, " ")
+    .replace(/-{2,}/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 140);
+}
+
+function sanitizeAssessmentList(value: unknown, fallback: string[]) {
+  if (!Array.isArray(value)) {
+    return fallback;
+  }
+
+  const items = value
+    .map((item) => normalizeAssessmentItem(String(item)))
+    .filter((item) => item.length > 0)
+    .slice(0, 4);
+
+  return items.length > 0 ? items : fallback;
+}
+
+function extractJsonBlock(content: string) {
+  const fencedMatch = content.match(/```json\s*([\s\S]*?)```/i) ?? content.match(/```([\s\S]*?)```/i);
+  if (fencedMatch?.[1]) {
+    return fencedMatch[1].trim();
+  }
+
+  const firstBrace = content.indexOf("{");
+  const lastBrace = content.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    return content.slice(firstBrace, lastBrace + 1);
+  }
+
+  return null;
+}
+
+function parseStructuredAssessment(content: string): SkillAssessment | null {
+  const jsonBlock = extractJsonBlock(content);
+  if (!jsonBlock) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(jsonBlock) as SkillAssessmentPayload;
+    return {
+      competitivenessScore: Math.max(0, Math.min(100, Number(parsed.competitivenessScore ?? 79))),
+      currentSkills: sanitizeAssessmentList(parsed.currentSkills, ["Comunicación", "Experiencia funcional"]),
+      missingSkills: sanitizeAssessmentList(parsed.missingSkills, ["Prueba social visible", "Contenido de autoridad"]),
+      emergingSkills: sanitizeAssessmentList(parsed.emergingSkills, ["AI copilots", "Audience intelligence"]),
+      strengths: sanitizeAssessmentList(parsed.strengths, ["Base profesional sólida", "Objetivo bien definido"]),
+      weaknesses: sanitizeAssessmentList(parsed.weaknesses, ["Falta una narrativa pública repetible"]),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function parseSectionedAssessment(content: string): SkillAssessment | null {
+  const sections: Record<string, string[]> = {
+    current: [],
+    missing: [],
+    emerging: [],
+    strengths: [],
+    weaknesses: [],
+  };
+
+  let currentSection: keyof typeof sections | null = null;
+  const normalizedLines = content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (const line of normalizedLines) {
+    const lowered = line.toLowerCase();
+
+    if (lowered.includes("skills actuales")) {
+      currentSection = "current";
+      continue;
+    }
+    if (lowered.includes("skills faltantes")) {
+      currentSection = "missing";
+      continue;
+    }
+    if (lowered.includes("skills emergentes")) {
+      currentSection = "emerging";
+      continue;
+    }
+    if (lowered.includes("fortalezas")) {
+      currentSection = "strengths";
+      continue;
+    }
+    if (lowered.includes("debilidades")) {
+      currentSection = "weaknesses";
+      continue;
+    }
+
+    const cleaned = normalizeAssessmentItem(line);
+    if (!cleaned || cleaned.length < 3 || !currentSection) {
+      continue;
+    }
+
+    sections[currentSection].push(cleaned);
+  }
+
+  const hasAnySection = Object.values(sections).some((items) => items.length > 0);
+  if (!hasAnySection) {
+    return null;
+  }
+
+  return {
+    competitivenessScore: 79,
+    currentSkills: sections.current.slice(0, 4),
+    missingSkills: sections.missing.slice(0, 4),
+    emergingSkills: sections.emerging.slice(0, 4),
+    strengths: sections.strengths.slice(0, 4),
+    weaknesses: sections.weaknesses.slice(0, 4),
+  };
+}
+
 export async function generateLinkedInPost(input: GeneratePostInput): Promise<GeneratedPost> {
   const prompt = `Crea un post de LinkedIn en español.
 ${profileContext(input.profile)}
@@ -269,19 +404,34 @@ export async function generateIdeas(profile: UserProfile): Promise<ContentIdea[]
 }
 
 export async function analyzeSkillGap(input: SkillGapInput): Promise<SkillAssessment> {
-  const prompt = `Analiza skill gap y empleabilidad en español.\n${profileContext(input.profile)}\nCV: ${input.resumeText}`;
+  const prompt = `Analiza skill gap y empleabilidad en español.
+${profileContext(input.profile)}
+CV: ${input.resumeText}
+
+Devuelve exclusivamente JSON válido con esta estructura:
+{
+  "competitivenessScore": number,
+  "currentSkills": ["string", "string"],
+  "missingSkills": ["string", "string"],
+  "emergingSkills": ["string", "string"],
+  "strengths": ["string", "string"],
+  "weaknesses": ["string", "string"]
+}
+
+Reglas:
+- Máximo 4 elementos por lista.
+- Cada elemento debe ser corto, claro y sin markdown.
+- Nada de explicaciones fuera del JSON.`;
   const remoteResult = await tryRemoteGeneration(prompt);
 
   if (remoteResult.content) {
-    const parsedLines = remoteResult.content.split("\n").filter(Boolean);
-    return {
-      competitivenessScore: 80,
-      currentSkills: parsedLines.slice(0, 4),
-      missingSkills: ["Visibilidad consistente", "Pensamiento analítico", "AI workflows"],
-      emergingSkills: ["Creator economy", "Audience intelligence"],
-      strengths: ["Experiencia relevante", "Perfil claro"],
-      weaknesses: ["Poca evidencia pública", "Menor cadencia de publicación"],
-    };
+    const parsedAssessment =
+      parseStructuredAssessment(remoteResult.content) ??
+      parseSectionedAssessment(remoteResult.content);
+
+    if (parsedAssessment) {
+      return parsedAssessment;
+    }
   }
 
   return {
