@@ -19,7 +19,7 @@ export default function IdeasPanel({ profile, ideas, onRefresh }: IdeasPanelProp
   }
 
   return (
-    <section className="surface p-6">
+    <section className="surface min-w-0 p-6">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Generador de ideas</h3>
@@ -32,7 +32,7 @@ export default function IdeasPanel({ profile, ideas, onRefresh }: IdeasPanelProp
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {ideas.map((idea) => (
-          <article key={idea.id} className="soft-card p-5">
+          <article key={idea.id} className="soft-card min-w-0 p-5">
             <p className="eyebrow">{idea.pillar}</p>
             <h4 className="mt-3 text-lg font-bold" style={{ color: "var(--text-primary)" }}>{idea.title}</h4>
             <p className="mt-3 text-sm leading-7 text-muted">{idea.description}</p>

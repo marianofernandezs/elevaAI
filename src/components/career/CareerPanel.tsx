@@ -31,9 +31,9 @@ export default function CareerPanel({
   }
 
   return (
-    <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-      <div className="space-y-6">
-        <div className="surface p-6">
+    <section className="grid min-w-0 gap-6 2xl:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
+      <div className="min-w-0 space-y-6">
+        <div className="surface min-w-0 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Skill Gap Analysis</h3>
@@ -55,9 +55,9 @@ export default function CareerPanel({
           </div>
         </div>
 
-        <div className="surface p-6">
+        <div className="surface min-w-0 p-6">
           <h4 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Hallazgos clave</h4>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="mt-4 grid min-w-0 gap-4 md:grid-cols-2">
             <ListCard title="Skills actuales" items={assessment.currentSkills} />
             <ListCard title="Skills faltantes" items={assessment.missingSkills} />
             <ListCard title="Skills emergentes" items={assessment.emergingSkills} />
@@ -69,7 +69,7 @@ export default function CareerPanel({
         </div>
       </div>
 
-      <div className="surface p-6">
+      <div className="surface min-w-0 p-6">
         <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Roadmap de Upskilling</h3>
         <p className="mt-2 text-sm text-muted">
           Acciones priorizadas para 30 días, 90 días y 6 meses con impacto esperado.
@@ -77,7 +77,7 @@ export default function CareerPanel({
 
         <div className="mt-5 space-y-4">
           {roadmap.map((item) => (
-            <article key={`${item.horizon}-${item.skill}`} className="soft-card p-5">
+            <article key={`${item.horizon}-${item.skill}`} className="soft-card min-w-0 p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="eyebrow">{item.horizon}</p>
@@ -97,7 +97,7 @@ export default function CareerPanel({
 
 function ListCard({ title, items }: { title: string; items: string[] }) {
   return (
-    <div className="soft-card p-5">
+    <div className="soft-card min-w-0 p-5">
       <h5 className="text-sm font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-primary)" }}>{title}</h5>
       <ul className="mt-4 space-y-3 text-sm leading-7 text-muted">
         {items.map((item) => (

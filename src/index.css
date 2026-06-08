@@ -67,6 +67,12 @@ body {
   box-sizing: border-box;
 }
 
+input,
+select,
+textarea {
+  min-width: 0;
+}
+
 a {
   color: inherit;
 }
@@ -102,7 +108,7 @@ a {
     background: var(--input-bg);
     color: var(--text-primary);
     border: 1px solid var(--border);
-    @apply w-full rounded-[1.25rem] px-4 py-3 text-sm outline-none transition duration-200;
+    @apply w-full min-w-0 rounded-[1.25rem] px-4 py-3 text-sm outline-none transition duration-200;
   }
 
   .input::placeholder {
@@ -150,7 +156,7 @@ a {
   .soft-card {
     background: color-mix(in srgb, var(--panel-muted) 82%, transparent);
     border: 1px solid var(--border);
-    @apply rounded-[1.75rem];
+    @apply min-w-0 rounded-[1.75rem];
   }
 
   .badge-pill {

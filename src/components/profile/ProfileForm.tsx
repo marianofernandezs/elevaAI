@@ -28,7 +28,7 @@ export default function ProfileForm({ profile, onChange }: ProfileFormProps) {
   }, [profile]);
 
   return (
-    <section className="surface p-6">
+    <section className="surface min-w-0 p-6">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Perfil profesional</h3>
@@ -39,9 +39,9 @@ export default function ProfileForm({ profile, onChange }: ProfileFormProps) {
         <div className="badge-pill">Español-first</div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid min-w-0 gap-4 md:grid-cols-2">
         {fields.map((field) => (
-          <label key={field.key}>
+          <label key={field.key} className="min-w-0">
             <span className="label">{field.label}</span>
             <input
               className="input"

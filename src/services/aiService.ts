@@ -32,20 +32,48 @@ interface ProviderConfig {
   model: string;
 }
 
+interface AIConnectionStatus {
+  available: boolean;
+  message: string;
+}
+
 function getProviderConfig(): ProviderConfig {
   const env = import.meta.env as Record<string, string | undefined>;
   const provider = (env.VITE_AI_PROVIDER as AIProvider | undefined) ?? "openrouter";
-  const apiKey = env.OPENROUTER_API_KEY ?? "";
-  const model = env.OPENROUTER_MODEL ?? "meta-llama/llama-3.1-8b-instruct";
+  const apiKey = env.OPENROUTER_API_KEY ?? env.VITE_OPENROUTER_API_KEY ?? "";
+  const model =
+    env.OPENROUTER_MODEL ??
+    env.VITE_OPENROUTER_MODEL ??
+    "meta-llama/llama-3.1-8b-instruct";
 
   return { provider, apiKey, model };
+}
+
+function parseOpenRouterErrorPayload(payloadText: string) {
+  try {
+    const payload = JSON.parse(payloadText) as {
+      error?: { message?: string; code?: number | string; metadata?: { raw?: string } };
+    };
+    return (
+      payload.error?.metadata?.raw ??
+      payload.error?.message ??
+      (payload.error?.code ? `Código ${payload.error.code}` : payloadText)
+    );
+  } catch {
+    return payloadText;
+  }
 }
 
 async function tryRemoteGeneration(prompt: string) {
   const config = getProviderConfig();
 
   if (!config.apiKey || config.provider !== "openrouter") {
-    return null;
+    return {
+      content: null,
+      errorReason: !config.apiKey
+        ? "No encontramos la API key de OpenRouter en el entorno cargado por Vite."
+        : "El proveedor configurado no es OpenRouter.",
+    };
   }
 
   try {
@@ -71,41 +99,61 @@ async function tryRemoteGeneration(prompt: string) {
     });
 
     if (!response.ok) {
-      throw new Error(`OpenRouter devolvió ${response.status}`);
+      const payloadText = await response.text();
+      return {
+        content: null,
+        errorReason:
+          response.status === 429
+            ? `OpenRouter devolvió rate limit para el modelo ${config.model}. ${parseOpenRouterErrorPayload(payloadText)}`
+            : `OpenRouter devolvió ${response.status}. ${parseOpenRouterErrorPayload(payloadText)}`,
+      };
     }
 
     const data = (await response.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
     };
 
-    return data.choices?.[0]?.message?.content ?? null;
+    return {
+      content: data.choices?.[0]?.message?.content ?? null,
+      errorReason: null,
+    };
   } catch (error) {
     captureAppError(error, { scope: "ai:openrouter" });
-    return null;
+    return {
+      content: null,
+      errorReason: error instanceof Error ? error.message : "Error inesperado al conectar con OpenRouter.",
+    };
   }
 }
 
-export async function checkAIConnection() {
+export async function checkAIConnection(): Promise<AIConnectionStatus> {
   const config = getProviderConfig();
 
-  if (!config.apiKey || config.provider !== "openrouter") {
+  if (config.provider !== "openrouter") {
     return {
       available: false,
-      message: "No hay proveedor remoto activo. La app usará fallback local.",
+      message: `El proveedor configurado es ${config.provider}. La app usará fallback local hasta implementar ese proveedor.`,
+    };
+  }
+
+  if (!config.apiKey) {
+    return {
+      available: false,
+      message: "No se cargó la API key de OpenRouter en Vite. Reinicia el servidor si acabas de editar el .env.",
     };
   }
 
   const result = await tryRemoteGeneration("Responde solo con la palabra: conectado");
-  if (!result) {
+  if (!result.content) {
     return {
       available: false,
-      message: "No pudimos validar OpenRouter. La UI seguirá usando fallback local.",
+      message: result.errorReason ?? "No pudimos validar OpenRouter. La UI seguirá usando fallback local.",
     };
   }
 
   return {
     available: true,
-    message: "OpenRouter respondió correctamente.",
+    message: `OpenRouter respondió correctamente usando ${config.model}.`,
   };
 }
 
@@ -125,7 +173,7 @@ Devuelve: hook, cuerpo, CTA y 3 hashtags.`;
 
   const remoteResult = await tryRemoteGeneration(prompt);
   const content =
-    remoteResult ??
+    remoteResult.content ??
     `${input.baseIdea}\n\nSi algo he aprendido en ${input.profile.yearsOfExperience} años es que la claridad estratégica importa más que la complejidad. Cuando conectas experiencia real con una perspectiva útil para tu audiencia, el contenido deja de sonar genérico y empieza a generar confianza.\n\nMi recomendación: convierte un reto reciente en una lección concreta, añade contexto y cierra con una invitación a conversar.\n\n¿Qué cambiarías tú en este enfoque?`;
 
   return {
@@ -145,8 +193,8 @@ export async function generateHooks(input: HookInput): Promise<string[]> {
   const prompt = `Genera 10 hooks en español para LinkedIn sobre ${input.topic}. ${profileContext(input.profile)}`;
   const remoteResult = await tryRemoteGeneration(prompt);
 
-  if (remoteResult) {
-    return remoteResult
+  if (remoteResult.content) {
+    return remoteResult.content
       .split("\n")
       .map((line) => line.replace(/^\d+[\).\s-]*/, "").trim())
       .filter(Boolean)
@@ -172,7 +220,7 @@ export async function rewriteContent(input: RewriteContentInput): Promise<string
   const remoteResult = await tryRemoteGeneration(prompt);
 
   return (
-    remoteResult ??
+    remoteResult.content ??
     `Idea central: ${input.sourceText}\n\nTomé esta experiencia y la transformé en una lección práctica. Muchas veces creemos que necesitamos más credenciales para publicar, cuando en realidad lo que más conecta es la claridad, la honestidad y una reflexión útil para otros.\n\nSi estás construyendo tu marca personal, empieza por documentar lo que ya estás aprendiendo.`
   );
 }
@@ -181,8 +229,8 @@ export async function generateIdeas(profile: UserProfile): Promise<ContentIdea[]
   const prompt = `Genera 6 ideas de contenido para LinkedIn en español para este perfil.\n${profileContext(profile)}`;
   const remoteResult = await tryRemoteGeneration(prompt);
 
-  if (remoteResult) {
-    return remoteResult
+  if (remoteResult.content) {
+    return remoteResult.content
       .split("\n")
       .filter(Boolean)
       .slice(0, 6)
@@ -224,8 +272,8 @@ export async function analyzeSkillGap(input: SkillGapInput): Promise<SkillAssess
   const prompt = `Analiza skill gap y empleabilidad en español.\n${profileContext(input.profile)}\nCV: ${input.resumeText}`;
   const remoteResult = await tryRemoteGeneration(prompt);
 
-  if (remoteResult) {
-    const parsedLines = remoteResult.split("\n").filter(Boolean);
+  if (remoteResult.content) {
+    const parsedLines = remoteResult.content.split("\n").filter(Boolean);
     return {
       competitivenessScore: 80,
       currentSkills: parsedLines.slice(0, 4),

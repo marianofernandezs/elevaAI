@@ -80,8 +80,8 @@ export default function AppShell({ email, onSignOut, children }: AppShellProps) 
         )}
       </div>
 
-      <div className="mx-auto grid min-h-screen max-w-7xl gap-6 px-4 py-5 lg:grid-cols-[300px_1fr] lg:px-6">
-        <aside className="surface hidden flex-col justify-between p-6 lg:flex">
+      <div className="mx-auto grid min-h-screen w-full max-w-[1760px] gap-6 px-4 py-5 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)] lg:px-6">
+        <aside className="surface hidden min-w-0 flex-col justify-between p-6 lg:flex">
           <div className="space-y-8">
             <div>
               <div className="flex items-start justify-between gap-4">
@@ -113,7 +113,7 @@ export default function AppShell({ email, onSignOut, children }: AppShellProps) 
           </div>
         </aside>
 
-        <main className="space-y-6 py-1 lg:pt-1">{children}</main>
+        <main className="min-w-0 space-y-6 py-1 lg:pt-1">{children}</main>
       </div>
     </div>
   );

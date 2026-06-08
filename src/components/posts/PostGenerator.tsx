@@ -39,8 +39,8 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
   }
 
   return (
-    <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-      <div className="surface p-6">
+    <section className="grid min-w-0 gap-6 2xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
+      <div className="surface min-w-0 p-6">
         <div className="mb-5">
           <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Generador de posts LinkedIn</h3>
           <p className="mt-2 text-sm text-muted">
@@ -48,8 +48,8 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="md:col-span-2">
+        <div className="grid min-w-0 gap-4 md:grid-cols-2">
+          <label className="min-w-0 md:col-span-2">
             <span className="label">Idea base</span>
             <textarea
               className="input min-h-28"
@@ -57,7 +57,7 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
               onChange={(event) => setBaseIdea(event.target.value)}
             />
           </label>
-          <label>
+          <label className="min-w-0">
             <span className="label">Objetivo</span>
             <select className="input" value={goal} onChange={(event) => setGoal(event.target.value)}>
               <option>Aumentar autoridad</option>
@@ -66,7 +66,7 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
               <option>Captar clientes</option>
             </select>
           </label>
-          <label>
+          <label className="min-w-0">
             <span className="label">Tipo de publicación</span>
             <select className="input" value={type} onChange={(event) => setType(event.target.value)}>
               <option>Storytelling</option>
@@ -79,7 +79,7 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
               <option>Captación de clientes</option>
             </select>
           </label>
-          <label>
+          <label className="min-w-0">
             <span className="label">Longitud</span>
             <select className="input" value={length} onChange={(event) => setLength(event.target.value)}>
               <option>Corta</option>
@@ -99,8 +99,8 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="surface p-6">
+      <div className="min-w-0 space-y-6">
+        <div className="surface min-w-0 p-6">
           <h3 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Reescritor de contenido</h3>
           <textarea
             className="input mt-4 min-h-36"
@@ -117,7 +117,7 @@ export default function PostGenerator({ profile, onPostCreated }: PostGeneratorP
           )}
         </div>
 
-        <div className="surface p-6">
+        <div className="surface min-w-0 p-6">
           <h3 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Hooks sugeridos</h3>
           <div className="mt-4 space-y-3">
             {hooks.length === 0 ? (

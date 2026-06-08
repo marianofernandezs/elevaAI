@@ -18,7 +18,7 @@ export default function ResumeUploader({ resume, onUpload }: ResumeUploaderProps
   }
 
   return (
-    <section className="surface p-6">
+    <section className="surface min-w-0 p-6">
       <div className="mb-5">
         <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Upload de CV</h3>
         <p className="mt-2 text-sm text-muted">
@@ -36,7 +36,7 @@ export default function ResumeUploader({ resume, onUpload }: ResumeUploaderProps
       </label>
 
       {resume && (
-        <div className="soft-card mt-5 p-5">
+        <div className="soft-card mt-5 min-w-0 p-5 break-words">
           <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{resume.fileName}</p>
           <p className="eyebrow mt-1">Subido el {resume.uploadedAt}</p>
           {resume.publicUrl && (

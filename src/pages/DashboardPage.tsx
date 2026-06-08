@@ -169,14 +169,14 @@ export default function DashboardPage() {
 
   return (
     <AppShell email={userEmail} onSignOut={signOut}>
-      <div className="surface overflow-hidden">
-        <div className="grid gap-5 p-6 lg:grid-cols-[1fr_300px] lg:items-center">
+      <div className="surface min-w-0 overflow-hidden">
+        <div className="grid min-w-0 gap-5 p-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-center">
           <SectionHeading
             eyebrow="Dashboard"
             title="Tu centro de control profesional"
             description="Gestiona perfil, contenido, CV, skill gap y roadmap desde una sola experiencia enfocada en tiempo al mercado."
           />
-          <div className="soft-card p-5 text-sm leading-7 text-muted">{banner}</div>
+          <div className="soft-card min-w-0 p-5 text-sm leading-7 text-muted break-words">{banner}</div>
         </div>
       </div>
 

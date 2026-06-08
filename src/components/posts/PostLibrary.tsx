@@ -8,7 +8,7 @@ interface PostLibraryProps {
 
 export default function PostLibrary({ posts, onUpdateStatus, onDelete }: PostLibraryProps) {
   return (
-    <section className="surface p-6">
+    <section className="surface min-w-0 p-6">
       <div className="mb-5">
         <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Biblioteca de posts</h3>
         <p className="mt-2 text-sm text-muted">Edita estados, archiva ideas o limpia drafts sin perder contexto.</p>
@@ -16,7 +16,7 @@ export default function PostLibrary({ posts, onUpdateStatus, onDelete }: PostLib
 
       <div className="space-y-4">
         {posts.map((post) => (
-          <article key={post.id} className="soft-card p-5">
+          <article key={post.id} className="soft-card min-w-0 p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="eyebrow">{post.type}</p>
