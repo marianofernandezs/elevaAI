@@ -85,6 +85,30 @@ async function tryRemoteGeneration(prompt: string) {
   }
 }
 
+export async function checkAIConnection() {
+  const config = getProviderConfig();
+
+  if (!config.apiKey || config.provider !== "openrouter") {
+    return {
+      available: false,
+      message: "No hay proveedor remoto activo. La app usará fallback local.",
+    };
+  }
+
+  const result = await tryRemoteGeneration("Responde solo con la palabra: conectado");
+  if (!result) {
+    return {
+      available: false,
+      message: "No pudimos validar OpenRouter. La UI seguirá usando fallback local.",
+    };
+  }
+
+  return {
+    available: true,
+    message: "OpenRouter respondió correctamente.",
+  };
+}
+
 function profileContext(profile: UserProfile) {
   return `Profesión: ${profile.profession}. Industria: ${profile.industry}. Experiencia: ${profile.yearsOfExperience} años. Objetivo profesional: ${profile.careerGoal}. Audiencia: ${profile.targetAudience}. País: ${profile.country}. Estilo: ${profile.communicationStyle}.`;
 }

@@ -9,21 +9,30 @@ export default function AuthPage() {
   const [email, setEmail] = useState("maria@careercopilot.io");
   const [password, setPassword] = useState("demo12345");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
       if (mode === "signin") {
         await signIn(email, password);
+        navigate("/app");
       } else {
-        await signUp(email, password);
-      }
+        const result = await signUp(email, password);
 
-      navigate("/app");
+        if (result.requiresEmailConfirmation) {
+          setSuccess("Tu cuenta fue creada. Revisa tu email para confirmar la cuenta antes de iniciar sesión.");
+          setMode("signin");
+          return;
+        }
+
+        navigate("/app");
+      }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Ocurrió un error inesperado.");
     } finally {
@@ -86,6 +95,7 @@ export default function AuthPage() {
           </div>
 
           {error && <p className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</p>}
+          {success && <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{success}</p>}
 
           <button type="submit" className="btn-primary mt-8 w-full" disabled={loading}>
             {loading ? "Procesando..." : mode === "signin" ? "Entrar" : "Crear cuenta"}

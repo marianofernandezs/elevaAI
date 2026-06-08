@@ -5,7 +5,7 @@ import type { ContentIdea, UserProfile } from "../../types";
 interface IdeasPanelProps {
   profile: UserProfile;
   ideas: ContentIdea[];
-  onRefresh: (ideas: ContentIdea[]) => void;
+  onRefresh: (ideas: ContentIdea[]) => Promise<void> | void;
 }
 
 export default function IdeasPanel({ profile, ideas, onRefresh }: IdeasPanelProps) {

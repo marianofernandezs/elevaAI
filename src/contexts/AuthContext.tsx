@@ -10,10 +10,12 @@ import { captureAppError } from "../lib/sentry";
 import { hasSupabaseEnv, supabase } from "../lib/supabase";
 
 interface AuthContextValue {
+  isLoading: boolean;
   isAuthenticated: boolean;
+  userId: string;
   userEmail: string;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<{ requiresEmailConfirmation: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -21,26 +23,34 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const localEmailKey = "career-linkedin-copilot-email";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState(() => window.localStorage.getItem(localEmailKey) ?? "");
 
   useEffect(() => {
     if (!hasSupabaseEnv || !supabase) {
+      setIsLoading(false);
       return;
     }
 
     supabase.auth.getUser().then(({ data, error }) => {
       if (error) {
         captureAppError(error, { scope: "auth:getUser" });
+        setIsLoading(false);
         return;
       }
 
+      setUserId(data.user?.id ?? "");
       setUserEmail(data.user?.email ?? "");
+      setIsLoading(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user.id ?? "");
       setUserEmail(session?.user.email ?? "");
+      setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -57,10 +67,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
+      isLoading,
       isAuthenticated: Boolean(userEmail),
+      userId,
       userEmail,
       async signIn(email, password) {
         if (!hasSupabaseEnv || !supabase) {
+          setUserId("local-user");
           setUserEmail(email);
           return;
         }
@@ -73,15 +86,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       async signUp(email, password) {
         if (!hasSupabaseEnv || !supabase) {
+          setUserId("local-user");
           setUserEmail(email);
-          return;
+          return { requiresEmailConfirmation: false };
         }
 
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) {
           captureAppError(error, { scope: "auth:signUp" });
           throw new Error("No pudimos crear tu cuenta. Intenta nuevamente.");
         }
+
+        return {
+          requiresEmailConfirmation: !data.session,
+        };
       },
       async signOut() {
         if (hasSupabaseEnv && supabase) {
@@ -91,10 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
+        setUserId("");
         setUserEmail("");
       },
     }),
-    [userEmail],
+    [isLoading, userEmail, userId],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

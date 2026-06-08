@@ -35,9 +35,12 @@ export interface ContentIdea {
 }
 
 export interface ResumeAsset {
+  id?: string;
   fileName: string;
   uploadedAt: string;
   extractedText: string;
+  storagePath?: string;
+  publicUrl?: string;
 }
 
 export interface SkillAssessment {

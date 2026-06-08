@@ -7,7 +7,7 @@ interface CareerPanelProps {
   resume: ResumeAsset | null;
   assessment: SkillAssessment;
   roadmap: RoadmapItem[];
-  onUpdate: (assessment: SkillAssessment, roadmap: RoadmapItem[]) => void;
+  onUpdate: (assessment: SkillAssessment, roadmap: RoadmapItem[]) => Promise<void> | void;
 }
 
 export default function CareerPanel({

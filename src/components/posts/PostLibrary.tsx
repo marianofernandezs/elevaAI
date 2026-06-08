@@ -2,8 +2,8 @@ import type { GeneratedPost, PostStatus } from "../../types";
 
 interface PostLibraryProps {
   posts: GeneratedPost[];
-  onUpdateStatus: (id: string, status: PostStatus) => void;
-  onDelete: (id: string) => void;
+  onUpdateStatus: (id: string, status: PostStatus) => Promise<void> | void;
+  onDelete: (id: string) => Promise<void> | void;
 }
 
 export default function PostLibrary({ posts, onUpdateStatus, onDelete }: PostLibraryProps) {

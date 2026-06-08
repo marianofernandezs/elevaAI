@@ -3,22 +3,18 @@ import type { ResumeAsset } from "../../types";
 
 interface ResumeUploaderProps {
   resume: ResumeAsset | null;
-  onUpload: (resume: ResumeAsset) => void;
+  onUpload: (file: File) => Promise<void>;
 }
 
 export default function ResumeUploader({ resume, onUpload }: ResumeUploaderProps) {
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
     if (!file) {
       return;
     }
 
-    onUpload({
-      fileName: file.name,
-      uploadedAt: new Date().toISOString().slice(0, 10),
-      extractedText: `Texto extraído de ${file.name}. En producción este contenido debe venir desde Supabase Storage y un extractor de PDF/DOCX.`,
-    });
+    await onUpload(file);
   }
 
   return (
@@ -40,6 +36,16 @@ export default function ResumeUploader({ resume, onUpload }: ResumeUploaderProps
         <div className="mt-5 rounded-3xl bg-slate-50 p-5">
           <p className="text-sm font-semibold text-slate-800">{resume.fileName}</p>
           <p className="mt-1 text-xs uppercase tracking-[0.2em] text-amber-700">Subido el {resume.uploadedAt}</p>
+          {resume.publicUrl && (
+            <a
+              className="mt-3 inline-flex text-sm font-semibold text-amber-700"
+              href={resume.publicUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Abrir archivo en Storage
+            </a>
+          )}
           <p className="mt-4 text-sm leading-7 text-slate-600">{resume.extractedText}</p>
         </div>
       )}

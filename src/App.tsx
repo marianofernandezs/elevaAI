@@ -5,7 +5,11 @@ import DashboardPage from "./pages/DashboardPage";
 import LandingPage from "./pages/LandingPage";
 
 function ProtectedRoute() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-sm font-semibold text-slate-600">Validando sesión...</div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
@@ -15,7 +19,11 @@ function ProtectedRoute() {
 }
 
 export default function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-sm font-semibold text-slate-600">Cargando aplicación...</div>;
+  }
 
   return (
     <Routes>

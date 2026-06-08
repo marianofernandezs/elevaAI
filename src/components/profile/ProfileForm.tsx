@@ -1,8 +1,9 @@
+import { useEffect, useState } from "react";
 import type { UserProfile } from "../../types";
 
 interface ProfileFormProps {
   profile: UserProfile;
-  onChange: (profile: UserProfile) => void;
+  onChange: (profile: UserProfile) => Promise<void> | void;
 }
 
 const fields: Array<{ key: keyof UserProfile; label: string; type?: string }> = [
@@ -20,6 +21,12 @@ const fields: Array<{ key: keyof UserProfile; label: string; type?: string }> = 
 ];
 
 export default function ProfileForm({ profile, onChange }: ProfileFormProps) {
+  const [draft, setDraft] = useState(profile);
+
+  useEffect(() => {
+    setDraft(profile);
+  }, [profile]);
+
   return (
     <section className="surface p-6">
       <div className="mb-6 flex items-center justify-between gap-4">
@@ -41,12 +48,16 @@ export default function ProfileForm({ profile, onChange }: ProfileFormProps) {
             <input
               className="input"
               type={field.type ?? "text"}
-              value={profile[field.key]}
-              onChange={(event) => onChange({ ...profile, [field.key]: event.target.value })}
+              value={draft[field.key]}
+              onChange={(event) => setDraft({ ...draft, [field.key]: event.target.value })}
             />
           </label>
         ))}
       </div>
+
+      <button type="button" className="btn-primary mt-6" onClick={() => void onChange(draft)}>
+        Guardar perfil
+      </button>
     </section>
   );
 }
