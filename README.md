@@ -48,6 +48,8 @@ Usa el archivo `.env.example` como base:
 ```bash
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
+VITE_SUPABASE_RESUME_BUCKET=resumes
+VITE_AI_PROVIDER=openrouter
 
 OPENROUTER_API_KEY=
 OPENROUTER_MODEL=meta-llama/llama-3.1-8b-instruct
@@ -67,7 +69,8 @@ pnpm dev
 1. Crea un proyecto en Supabase.
 2. Ejecuta [`supabase/schema.sql`](/Users/mariano/Documents/Universidad/Noveno%20Semestre/TOP2-Desarrollo-De-Aplicaciones%20/elevaAI/supabase/schema.sql).
 3. Configura `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
-4. Crea un bucket de Storage para CVs, por ejemplo `resumes`.
+4. Si ya corriste el esquema antes de esta actualización, ejecuta además [`supabase/storage.sql`](/Users/mariano/Documents/Universidad/Noveno%20Semestre/TOP2-Desarrollo-De-Aplicaciones%20/elevaAI/supabase/storage.sql).
+5. Usa `VITE_SUPABASE_RESUME_BUCKET=resumes` o el bucket que prefieras.
 
 ## IA
 
@@ -76,6 +79,7 @@ La app centraliza la generación en [`src/services/aiService.ts`](/Users/mariano
 Notas importantes para producción:
 
 - En el frontend actual existe fallback local para acelerar el MVP.
+- `VITE_AI_PROVIDER=openrouter` activa la verificación remota del proveedor al cargar el dashboard.
 - La clave `OPENROUTER_API_KEY` no debe exponerse en cliente en un despliegue real.
 - La siguiente iteración recomendada es mover la llamada al proveedor de IA a una Supabase Edge Function o backend serverless.
 - La interfaz ya está desacoplada para cambiar proveedor sin tocar la UI.
@@ -94,5 +98,6 @@ Configura `SENTRY_DSN` para activar monitoreo de errores de frontend y servicios
 ## Estado actual del MVP
 
 - El frontend está funcional.
-- Si no configuras Supabase, la autenticación cae en modo local para demo rápida.
-- Si no configuras IA remota, las generaciones usan respuestas fallback para que el flujo siga operativo.
+- Con Supabase configurado, perfil, posts, ideas, assessment, roadmap y CV ya persisten por usuario.
+- El CV se sube a Supabase Storage y el texto se extrae desde PDF o DOCX en cliente.
+- Si no configuras IA remota o el proveedor responde con rate limit, las generaciones usan fallback local para que el flujo siga operativo.

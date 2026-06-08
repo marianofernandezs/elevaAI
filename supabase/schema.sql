@@ -1,5 +1,9 @@
 create extension if not exists "pgcrypto";
 
+insert into storage.buckets (id, name, public)
+values ('resumes', 'resumes', true)
+on conflict (id) do nothing;
+
 create table if not exists public.user_profiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique,
@@ -104,6 +108,38 @@ for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "learning_roadmaps_all_own" on public.learning_roadmaps
 for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'resume_storage_select_own'
+  ) then
+    create policy "resume_storage_select_own" on storage.objects
+    for select using (
+      bucket_id = 'resumes'
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
+  end if;
+
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'resume_storage_insert_own'
+  ) then
+    create policy "resume_storage_insert_own" on storage.objects
+    for insert with check (
+      bucket_id = 'resumes'
+      and (storage.foldername(name))[1] = auth.uid()::text
+    );
+  end if;
+end
+$$;
 
 create or replace function public.set_updated_at()
 returns trigger
