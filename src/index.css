@@ -569,23 +569,9 @@ a {
   }
 
   .workspace-board--overview > .workspace-artifact {
-    grid-column: span 4;
-    min-height: 760px;
-    max-width: 430px;
-  }
-
-  .workspace-board--overview > .workspace-artifact:nth-child(3n + 1) {
-    grid-column-start: 1;
-  }
-
-  .workspace-board--overview > .workspace-artifact:nth-child(3n + 2) {
-    grid-column-start: 5;
-    margin-top: 2.25rem;
-  }
-
-  .workspace-board--overview > .workspace-artifact:nth-child(3n) {
-    grid-column-start: 9;
-    margin-top: 0.75rem;
+    grid-column: 1 / span 8;
+    min-height: 680px;
+    max-width: 960px;
   }
 
   .workspace-board--profile,
@@ -642,18 +628,9 @@ a {
   }
 
   .workspace-board--overview > .workspace-artifact {
-    grid-column: span 5;
+    grid-column: 1 / span 10;
     max-width: none;
-  }
-
-  .workspace-board--overview > .workspace-artifact:nth-child(odd) {
-    grid-column-start: 1;
     margin-top: 0;
-  }
-
-  .workspace-board--overview > .workspace-artifact:nth-child(even) {
-    grid-column-start: 7;
-    margin-top: 2rem;
   }
 
   .workspace-board--profile > .workspace-artifact,

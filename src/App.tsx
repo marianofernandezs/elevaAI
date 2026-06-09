@@ -4,88 +4,125 @@ import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage";
 import LandingPage from "./pages/LandingPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import ProfileAnalysisLoadingPage from "./pages/ProfileAnalysisLoadingPage";
 import WorkspacePage from "./pages/WorkspacePage";
-import { loadUserProfile } from "./services/dashboardService";
-import { isProfessionalProfileComplete } from "./utils/profile";
+import { loadUserProfile, loadUserProfileAnalysis } from "./services/dashboardService";
+import { hasProfileAnalysis, isProfessionalProfileComplete } from "./utils/profile";
+
+type FlowStatus = "needs_profile" | "needs_analysis" | "ready";
+
+function readLocalFlowStatus(): FlowStatus {
+  const raw = window.localStorage.getItem("career-linkedin-copilot-state");
+  if (!raw) {
+    return "needs_profile";
+  }
+
+  const parsed = JSON.parse(raw) as { profile?: unknown; profileAnalysis?: unknown };
+  const profile = parsed.profile && typeof parsed.profile === "object" ? parsed.profile : null;
+  const profileAnalysis =
+    parsed.profileAnalysis && typeof parsed.profileAnalysis === "object" ? parsed.profileAnalysis : null;
+
+  if (!isProfessionalProfileComplete(profile as Parameters<typeof isProfessionalProfileComplete>[0])) {
+    return "needs_profile";
+  }
+
+  return hasProfileAnalysis(profileAnalysis as Parameters<typeof hasProfileAnalysis>[0])
+    ? "ready"
+    : "needs_analysis";
+}
 
 function ProtectedRoute({
   children,
-  requireCompleteProfile = true,
+  allow,
 }: {
   children: ReactNode;
-  requireCompleteProfile?: boolean;
+  allow: FlowStatus[];
 }) {
   const { isAuthenticated, isLoading, userId } = useAuth();
-  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
-  const [hasCompleteProfile, setHasCompleteProfile] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const [flowStatus, setFlowStatus] = useState<FlowStatus>("needs_profile");
 
   useEffect(() => {
     let ignore = false;
 
-    async function checkProfile() {
+    async function resolveFlowStatus() {
       if (!isAuthenticated) {
-        setIsCheckingProfile(false);
+        setIsChecking(false);
         return;
       }
 
       if (userId === "local-user") {
-        const storedState = window.localStorage.getItem("career-linkedin-copilot-state");
-        const profile = storedState ? (JSON.parse(storedState) as { profile?: unknown }).profile : null;
         if (!ignore) {
-          setHasCompleteProfile(
-            isProfessionalProfileComplete(
-              profile && typeof profile === "object" ? (profile as Parameters<typeof isProfessionalProfileComplete>[0]) : null,
-            ),
-          );
-          setIsCheckingProfile(false);
+          setFlowStatus(readLocalFlowStatus());
+          setIsChecking(false);
         }
         return;
       }
 
       if (!userId) {
         if (!ignore) {
-          setHasCompleteProfile(false);
-          setIsCheckingProfile(false);
+          setFlowStatus("needs_profile");
+          setIsChecking(false);
         }
         return;
       }
 
       try {
-        const profile = await loadUserProfile(userId);
-        if (!ignore) {
-          setHasCompleteProfile(isProfessionalProfileComplete(profile));
+        const [profile, analysis] = await Promise.all([
+          loadUserProfile(userId),
+          loadUserProfileAnalysis(userId),
+        ]);
+
+        if (ignore) {
+          return;
+        }
+
+        if (!isProfessionalProfileComplete(profile)) {
+          setFlowStatus("needs_profile");
+        } else if (!hasProfileAnalysis(analysis)) {
+          setFlowStatus("needs_analysis");
+        } else {
+          setFlowStatus("ready");
         }
       } catch {
         if (!ignore) {
-          setHasCompleteProfile(false);
+          setFlowStatus("needs_profile");
         }
       } finally {
         if (!ignore) {
-          setIsCheckingProfile(false);
+          setIsChecking(false);
         }
       }
     }
 
-    void checkProfile();
+    void resolveFlowStatus();
 
     return () => {
       ignore = true;
     };
   }, [isAuthenticated, userId]);
 
-  if (isLoading || isCheckingProfile) {
-    return <div className="flex min-h-screen items-center justify-center text-sm font-semibold text-slate-600">Validando sesión...</div>;
+  if (isLoading || isChecking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm font-semibold text-slate-600">
+        Validando sesión y estado de onboarding...
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (requireCompleteProfile && !hasCompleteProfile) {
-    return <Navigate to="/onboarding" replace />;
-  }
+  if (!allow.includes(flowStatus)) {
+    if (flowStatus === "needs_profile") {
+      return <Navigate to="/onboarding" replace />;
+    }
 
-  if (!requireCompleteProfile && hasCompleteProfile) {
+    if (flowStatus === "needs_analysis") {
+      return <Navigate to="/profile-analysis-loading" replace />;
+    }
+
     return <Navigate to="/workspace" replace />;
   }
 
@@ -102,22 +139,27 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route
-        path="/auth"
-        element={isAuthenticated ? <Navigate to="/workspace" replace /> : <AuthPage />}
-      />
+      <Route path="/auth" element={isAuthenticated ? <Navigate to="/workspace" replace /> : <AuthPage />} />
       <Route
         path="/onboarding"
         element={
-          <ProtectedRoute requireCompleteProfile={false}>
+          <ProtectedRoute allow={["needs_profile"]}>
             <OnboardingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile-analysis-loading"
+        element={
+          <ProtectedRoute allow={["needs_analysis"]}>
+            <ProfileAnalysisLoadingPage />
           </ProtectedRoute>
         }
       />
       <Route
         path="/workspace"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allow={["ready"]}>
             <WorkspacePage />
           </ProtectedRoute>
         }
@@ -125,7 +167,7 @@ export default function App() {
       <Route
         path="/profile"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allow={["ready"]}>
             <WorkspacePage initialModule="profile" />
           </ProtectedRoute>
         }
@@ -133,7 +175,7 @@ export default function App() {
       <Route
         path="/resume-upload"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allow={["ready"]}>
             <WorkspacePage initialModule="resume" />
           </ProtectedRoute>
         }
@@ -141,7 +183,7 @@ export default function App() {
       <Route
         path="/skill-gap"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allow={["ready"]}>
             <WorkspacePage initialModule="skills" />
           </ProtectedRoute>
         }
@@ -149,7 +191,7 @@ export default function App() {
       <Route
         path="/roadmap"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allow={["ready"]}>
             <WorkspacePage initialModule="roadmap" />
           </ProtectedRoute>
         }
@@ -157,7 +199,7 @@ export default function App() {
       <Route
         path="/library"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allow={["ready"]}>
             <WorkspacePage initialModule="library" />
           </ProtectedRoute>
         }
@@ -165,7 +207,7 @@ export default function App() {
       <Route
         path="/workspace/posts"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allow={["ready"]}>
             <WorkspacePage initialModule="posts" />
           </ProtectedRoute>
         }
@@ -173,7 +215,7 @@ export default function App() {
       <Route
         path="/workspace/ideas"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allow={["ready"]}>
             <WorkspacePage initialModule="ideas" />
           </ProtectedRoute>
         }

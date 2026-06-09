@@ -8,6 +8,7 @@ import {
   removeGeneratedPost,
   replaceContentIdeas,
   saveAssessmentAndRoadmap,
+  saveProfileAnalysis,
   saveUserProfile,
   updateGeneratedPostStatus,
   uploadResume,
@@ -90,6 +91,17 @@ export function useWorkspaceData() {
         }
 
         setBanner("Perfil actualizado en modo local.");
+      },
+      async saveInitialProfileAnalysis(profileAnalysis: NonNullable<DashboardState["profileAnalysis"]>) {
+        setState((current) => ({ ...current, profileAnalysis }));
+
+        if (userId && userId !== "local-user") {
+          await saveProfileAnalysis(userId, profileAnalysis);
+          setBanner("Análisis inicial guardado en Supabase.");
+          return;
+        }
+
+        setBanner("Análisis inicial guardado en modo local.");
       },
       async createPost(post: GeneratedPost) {
         const persistedPost =

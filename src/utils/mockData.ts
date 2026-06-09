@@ -2,6 +2,7 @@ import type {
   ContentIdea,
   DashboardState,
   GeneratedPost,
+  ProfileAnalysis,
   RoadmapItem,
   SkillAssessment,
   UserProfile,
@@ -95,6 +96,36 @@ export const sampleAssessment: SkillAssessment = {
   weaknesses: ["Menor frecuencia de publicación", "Poca evidencia pública de resultados cuantitativos"],
 };
 
+export const sampleProfileAnalysis: ProfileAnalysis = {
+  professionalSummary:
+    "Profesional de marketing B2B con experiencia real en lanzamientos, posicionamiento y narrativa orientada a negocio.",
+  niche: "Go-to-market y storytelling para SaaS B2B",
+  industryContext:
+    "Mercado competitivo donde la claridad estratégica, la conexión con revenue y la visibilidad pública generan diferenciación.",
+  careerGoalSummary:
+    "Posicionarse como referente en estrategia de producto y GTM para atraer oportunidades senior y consultoría.",
+  linkedInOpportunities: [
+    "Convertir aprendizajes de lanzamientos en contenido de autoridad.",
+    "Publicar más evidencia cuantitativa para reforzar credibilidad.",
+    "Conectar marketing con impacto de negocio en cada pieza de contenido.",
+  ],
+  prioritySkills: ["Thought leadership system", "Revenue analytics", "AI workflows"],
+  initialRecommendation:
+    "Tu mejor palanca inicial es convertir experiencia operativa en contenido consistente con enfoque en resultados y claridad de posicionamiento.",
+  positioningStatement:
+    "Ayudo a equipos SaaS B2B a traducir estrategia de producto en narrativas que aceleran adopción, revenue y posicionamiento.",
+  topOpportunities: [
+    "Autoridad en go-to-market para productos B2B.",
+    "Narrativa pública más consistente y reconocible.",
+    "Mayor alineación entre contenido y oportunidades de consultoría.",
+  ],
+  recommendedActions: [
+    "Crear tu primer post de autoridad sobre un lanzamiento real.",
+    "Subir CV para enriquecer contexto y detectar skill gaps.",
+    "Definir una cadencia de contenido conectada con revenue y posicionamiento.",
+  ],
+};
+
 export const sampleRoadmap: RoadmapItem[] = [
   {
     horizon: "30 días",
@@ -121,14 +152,17 @@ export const sampleRoadmap: RoadmapItem[] = [
 
 export const initialDashboardState: DashboardState = {
   profile: emptyProfile,
-  posts: samplePosts,
-  ideas: sampleIdeas,
-  resume: {
-    fileName: "cv-maria-soto.pdf",
-    uploadedAt: "2026-06-07",
-    extractedText:
-      "Product Marketing Manager con 6 años de experiencia en SaaS B2B, lanzamientos, posicionamiento y colaboración con equipos de producto y revenue.",
+  profileAnalysis: null,
+  posts: [],
+  ideas: [],
+  resume: null,
+  assessment: {
+    competitivenessScore: 0,
+    currentSkills: [],
+    missingSkills: [],
+    emergingSkills: [],
+    strengths: [],
+    weaknesses: [],
   },
-  assessment: sampleAssessment,
-  roadmap: sampleRoadmap,
+  roadmap: [],
 };

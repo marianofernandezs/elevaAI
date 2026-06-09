@@ -43,6 +43,19 @@ export interface ResumeAsset {
   publicUrl?: string;
 }
 
+export interface ProfileAnalysis {
+  professionalSummary: string;
+  niche: string;
+  industryContext: string;
+  careerGoalSummary: string;
+  linkedInOpportunities: string[];
+  prioritySkills: string[];
+  initialRecommendation: string;
+  positioningStatement: string;
+  topOpportunities: string[];
+  recommendedActions: string[];
+}
+
 export interface SkillAssessment {
   competitivenessScore: number;
   currentSkills: string[];
@@ -62,6 +75,7 @@ export interface RoadmapItem {
 
 export interface DashboardState {
   profile: UserProfile;
+  profileAnalysis: ProfileAnalysis | null;
   posts: GeneratedPost[];
   ideas: ContentIdea[];
   resume: ResumeAsset | null;

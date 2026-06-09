@@ -1,5 +1,5 @@
 import { captureAppError } from "../lib/sentry";
-import type { ContentIdea, GeneratedPost, RoadmapItem, SkillAssessment, UserProfile } from "../types";
+import type { ContentIdea, GeneratedPost, ProfileAnalysis, RoadmapItem, SkillAssessment, UserProfile } from "../types";
 
 type AIProvider = "openrouter" | "openai" | "anthropic" | "gemini";
 
@@ -401,6 +401,92 @@ export async function generateIdeas(profile: UserProfile): Promise<ContentIdea[]
       pillar: "Marca personal",
     },
   ];
+}
+
+export async function generateInitialProfileAnalysis(profile: UserProfile): Promise<ProfileAnalysis> {
+  const prompt = `Analiza este perfil profesional para una experiencia Spanish-first de crecimiento en LinkedIn.
+${profileContext(profile)}
+
+Devuelve exclusivamente JSON válido con esta estructura:
+{
+  "professionalSummary": "string",
+  "niche": "string",
+  "industryContext": "string",
+  "careerGoalSummary": "string",
+  "linkedInOpportunities": ["string", "string", "string"],
+  "prioritySkills": ["string", "string", "string"],
+  "initialRecommendation": "string",
+  "positioningStatement": "string",
+  "topOpportunities": ["string", "string", "string"],
+  "recommendedActions": ["string", "string", "string"]
+}
+
+Reglas:
+- Todo en español.
+- Máximo 3 elementos por lista.
+- Sin markdown.
+- Tono claro, accionable y profesional.
+- Nada fuera del JSON.`;
+
+  const remoteResult = await tryRemoteGeneration(prompt);
+  if (remoteResult.content) {
+    const jsonBlock = extractJsonBlock(remoteResult.content);
+    if (jsonBlock) {
+      try {
+        const parsed = JSON.parse(jsonBlock) as Partial<ProfileAnalysis>;
+        if (parsed.professionalSummary && parsed.niche && parsed.positioningStatement) {
+          return {
+            professionalSummary: String(parsed.professionalSummary),
+            niche: String(parsed.niche),
+            industryContext: String(parsed.industryContext ?? ""),
+            careerGoalSummary: String(parsed.careerGoalSummary ?? ""),
+            linkedInOpportunities: Array.isArray(parsed.linkedInOpportunities)
+              ? parsed.linkedInOpportunities.map(String).slice(0, 3)
+              : [],
+            prioritySkills: Array.isArray(parsed.prioritySkills)
+              ? parsed.prioritySkills.map(String).slice(0, 3)
+              : [],
+            initialRecommendation: String(parsed.initialRecommendation ?? ""),
+            positioningStatement: String(parsed.positioningStatement),
+            topOpportunities: Array.isArray(parsed.topOpportunities)
+              ? parsed.topOpportunities.map(String).slice(0, 3)
+              : [],
+            recommendedActions: Array.isArray(parsed.recommendedActions)
+              ? parsed.recommendedActions.map(String).slice(0, 3)
+              : [],
+          };
+        }
+      } catch {
+        // fallback below
+      }
+    }
+  }
+
+  return {
+    professionalSummary: `${profile.fullName || "Este perfil"} combina experiencia en ${profile.profession || "su rol"} con foco en ${profile.industry || "su industria"} y una narrativa con potencial de autoridad.`,
+    niche: `${profile.profession || "Profesional"} enfocado en ${profile.industry || "crecimiento profesional"}`,
+    industryContext: `En ${profile.industry || "tu industria"}, la visibilidad pública y la claridad de especialización aceleran oportunidades laborales y reputación.`,
+    careerGoalSummary: `Tu objetivo principal hoy es ${profile.careerGoal || "crecer profesionalmente"} sin perder coherencia con tu marca personal.`,
+    linkedInOpportunities: [
+      "Convertir experiencia real en contenido de autoridad.",
+      "Hacer más visible tu propuesta de valor profesional.",
+      "Vincular tu posicionamiento con necesidades concretas del mercado.",
+    ],
+    prioritySkills: ["Narrativa profesional", "Contenido de autoridad", "Señales públicas de expertise"],
+    initialRecommendation:
+      "Empieza por clarificar tu posicionamiento y convertir una experiencia concreta en una primera pieza de contenido que te represente.",
+    positioningStatement: `Ayudo desde ${profile.profession || "mi experiencia profesional"} a generar valor en ${profile.industry || "mi industria"} con una mirada ${profile.communicationStyle || "clara y accionable"}.`,
+    topOpportunities: [
+      "Definir un nicho reconocible dentro de LinkedIn.",
+      "Aumentar consistencia entre perfil, contenido y objetivo profesional.",
+      "Usar publicaciones para reforzar empleabilidad y autoridad.",
+    ],
+    recommendedActions: [
+      "Crear tu primer post con una experiencia profesional real.",
+      "Subir tu CV para enriquecer el contexto del agente.",
+      "Abrir el skill gap para priorizar las brechas más visibles.",
+    ],
+  };
 }
 
 export async function analyzeSkillGap(input: SkillGapInput): Promise<SkillAssessment> {

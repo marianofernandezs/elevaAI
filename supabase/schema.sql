@@ -36,6 +36,22 @@ create table if not exists public.generated_posts (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.profile_analyses (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  professional_summary text not null,
+  niche text not null,
+  industry_context text not null,
+  career_goal_summary text not null,
+  linkedin_opportunities text[] not null default '{}',
+  priority_skills text[] not null default '{}',
+  initial_recommendation text not null,
+  positioning_statement text not null,
+  top_opportunities text[] not null default '{}',
+  recommended_actions text[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.content_ideas (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null,
@@ -80,6 +96,7 @@ create table if not exists public.learning_roadmaps (
 
 alter table public.user_profiles enable row level security;
 alter table public.generated_posts enable row level security;
+alter table public.profile_analyses enable row level security;
 alter table public.content_ideas enable row level security;
 alter table public.resumes enable row level security;
 alter table public.skill_assessments enable row level security;
@@ -95,6 +112,9 @@ create policy "user_profiles_update_own" on public.user_profiles
 for update using (auth.uid() = user_id);
 
 create policy "generated_posts_all_own" on public.generated_posts
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "profile_analyses_all_own" on public.profile_analyses
 for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "content_ideas_all_own" on public.content_ideas

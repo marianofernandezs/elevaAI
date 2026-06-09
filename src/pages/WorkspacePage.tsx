@@ -5,6 +5,7 @@ import {
   Bot,
   ChevronRight,
   FilePenLine,
+  FileUp,
   FileText,
   Lightbulb,
   Plus,
@@ -545,48 +546,117 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
         );
       case "overview":
       default:
+        if (!state.profileAnalysis) {
+          return (
+            <ArtifactShell
+              eyebrow="Preparando workspace"
+              title="Todavía estamos construyendo tu análisis inicial"
+              description="Cuando el análisis del perfil esté listo, este lienzo mostrará tu posicionamiento, oportunidades y próximas acciones."
+              gradient="var(--canvas-accent)"
+            >
+              <div className="workspace-mini-card">
+                <p className="text-base leading-7" style={{ color: "var(--canvas-muted)" }}>
+                  Vuelve en unos segundos o recarga la app si acabas de terminar el onboarding.
+                </p>
+              </div>
+            </ArtifactShell>
+          );
+        }
+
         return (
           <>
-            {state.posts.length > 0 ? (
-              state.posts.map((post) => (
-                <ArtifactShell
-                  key={post.id}
-                  eyebrow={post.status === "published" ? "Post publicado" : "Post en borrador"}
-                  title={post.title}
-                  description="Vista previa del post subido por el usuario con sus métricas principales dentro del lienzo."
-                  gradient="var(--canvas-accent)"
-                >
-                  <div className="space-y-8">
-                    <LinkedInPreviewCard title={post.title} hook={post.hook} body={post.content} />
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                      {buildPostMetrics(post).map((metric) => (
-                        <div key={`${post.id}-${metric.label}`} className="workspace-stat-card">
-                          <p className="text-sm" style={{ color: "var(--canvas-muted)" }}>
-                            {metric.label}
-                          </p>
-                          <p className="mt-2 text-4xl font-bold" style={{ color: "var(--canvas-text)" }}>
-                            {metric.value}
+            <ArtifactShell
+              eyebrow="Workspace principal"
+              title={`Hola ${state.profile.fullName.split(" ")[0] || "ahí"}, este es tu centro de crecimiento.`}
+              description="elevaIA ya detectó cómo deberías posicionarte en LinkedIn y cuáles son las siguientes palancas que más impacto pueden tener."
+              gradient="var(--canvas-accent)"
+            >
+              <div className="space-y-8">
+                <div className="workspace-mini-card">
+                  <p className="eyebrow">Posicionamiento detectado</p>
+                  <h4 className="mt-3 text-2xl font-bold" style={{ color: "var(--canvas-text)" }}>
+                    {state.profileAnalysis.positioningStatement}
+                  </h4>
+                  <p className="mt-4 text-base leading-8" style={{ color: "var(--canvas-muted)" }}>
+                    {state.profileAnalysis.professionalSummary}
+                  </p>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="workspace-mini-card">
+                    <p className="eyebrow">3 oportunidades principales</p>
+                    <div className="mt-4 space-y-3">
+                      {state.profileAnalysis.topOpportunities.slice(0, 3).map((opportunity) => (
+                        <div key={opportunity} className="rounded-[1.1rem] border px-4 py-4" style={{ borderColor: "var(--canvas-border)" }}>
+                          <p className="text-sm leading-7" style={{ color: "var(--canvas-text)" }}>
+                            {opportunity}
                           </p>
                         </div>
                       ))}
                     </div>
                   </div>
-                </ArtifactShell>
-              ))
-            ) : (
-              <ArtifactShell
-                eyebrow="Canvas vacío"
-                title="Todavía no hay posts en tu lienzo"
-                description="Cuando subas o generes posts, aparecerán aquí con su preview y estadísticas para compararlos dentro de la hoja de trabajo."
-                gradient="var(--canvas-accent)"
-              >
-                <div className="workspace-mini-card">
-                  <p className="text-base leading-7" style={{ color: "var(--canvas-muted)" }}>
-                    Usa el agente para crear un post o entra al módulo de posts para empezar a poblar este canvas.
-                  </p>
+
+                  <div className="workspace-mini-card">
+                    <p className="eyebrow">3 acciones recomendadas</p>
+                    <div className="mt-4 space-y-3">
+                      {state.profileAnalysis.recommendedActions.slice(0, 3).map((action) => (
+                        <div key={action} className="rounded-[1.1rem] border px-4 py-4" style={{ borderColor: "var(--canvas-border)" }}>
+                          <p className="text-sm leading-7" style={{ color: "var(--canvas-text)" }}>
+                            {action}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </ArtifactShell>
-            )}
+
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    {
+                      label: "Crear primer post",
+                      copy: "Genera tu primera pieza de autoridad desde el canvas.",
+                      module: "posts" as WorkspaceModule,
+                      icon: FilePenLine,
+                    },
+                    {
+                      label: "Subir CV",
+                      copy: "Añade contexto real para análisis más precisos.",
+                      module: "resume" as WorkspaceModule,
+                      icon: FileUp,
+                    },
+                    {
+                      label: "Ver Skill Gap",
+                      copy: "Detecta tus brechas y señales del mercado.",
+                      module: "skills" as WorkspaceModule,
+                      icon: BarChart3,
+                    },
+                    {
+                      label: "Generar roadmap",
+                      copy: "Prioriza próximos pasos a 30, 90 días y 6 meses.",
+                      module: "roadmap" as WorkspaceModule,
+                      icon: Sparkles,
+                    },
+                  ].map(({ label, copy, module, icon: Icon }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className="workspace-mini-card text-left transition hover:-translate-y-0.5"
+                      onClick={() => setActiveModule(module)}
+                    >
+                      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <h4 className="mt-4 text-xl font-bold" style={{ color: "var(--canvas-text)" }}>
+                        {label}
+                      </h4>
+                      <p className="mt-3 text-sm leading-7" style={{ color: "var(--canvas-muted)" }}>
+                        {copy}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </ArtifactShell>
           </>
         );
     }
