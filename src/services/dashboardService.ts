@@ -45,6 +45,26 @@ function mapProfileRecord(record: Record<string, unknown> | null | undefined): U
   };
 }
 
+export async function loadUserProfile(userId: string): Promise<UserProfile | null> {
+  const client = ensureSupabase();
+  const { data, error } = await client
+    .from("user_profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    captureAppError(error, { scope: "dashboard:loadUserProfile" });
+    throw new Error("No pudimos verificar tu perfil profesional.");
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return mapProfileRecord(data as Record<string, unknown>);
+}
+
 function mapPostRecord(record: Record<string, unknown>): GeneratedPost {
   return {
     id: String(record.id),

@@ -22,7 +22,7 @@ export default function AuthPage() {
     try {
       if (mode === "signin") {
         await signIn(email, password);
-        navigate("/app");
+        navigate("/workspace");
       } else {
         const result = await signUp(email, password);
 
@@ -32,7 +32,7 @@ export default function AuthPage() {
           return;
         }
 
-        navigate("/app");
+        navigate("/workspace");
       }
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Ocurrió un error inesperado.");

@@ -47,6 +47,49 @@
   --input-bg: rgba(22, 32, 34, 0.88);
 }
 
+:root,
+[data-theme="dark"] {
+  --workspace-frame: linear-gradient(135deg, #0f1723 0%, #111a25 26%, #f6f0e7 26%, #f7f3ed 100%);
+  --workspace-sidebar-bg: linear-gradient(180deg, #131d2f 0%, #101827 54%, #0e1522 100%);
+  --workspace-sidebar-border: rgba(255, 255, 255, 0.08);
+  --workspace-sidebar-muted: rgba(255, 255, 255, 0.62);
+  --workspace-chip-bg: rgba(255, 255, 255, 0.08);
+  --workspace-chip-border: rgba(255, 255, 255, 0.1);
+  --workspace-chip-hover: rgba(255, 255, 255, 0.14);
+  --workspace-agent-card: rgba(255, 255, 255, 0.08);
+  --workspace-user-card: linear-gradient(135deg, #3668ff 0%, #2958d8 100%);
+  --canvas-surface: rgba(255, 251, 247, 0.88);
+  --canvas-surface-strong: #fffdf9;
+  --canvas-border: rgba(73, 58, 44, 0.12);
+  --canvas-text: #1b2232;
+  --canvas-muted: #7b8497;
+  --canvas-accent: #3167f6;
+  --canvas-grid-line: rgba(77, 92, 120, 0.15);
+  --canvas-grid-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.68));
+  --canvas-shadow: 0 28px 60px rgba(30, 41, 59, 0.12);
+}
+
+[data-theme="dark"] {
+  --workspace-frame: linear-gradient(135deg, #09111c 0%, #0c1420 26%, #121a24 26%, #0e1720 100%);
+  --workspace-sidebar-bg: linear-gradient(180deg, #0d1320 0%, #0b111d 52%, #0a1019 100%);
+  --workspace-sidebar-border: rgba(255, 255, 255, 0.06);
+  --workspace-sidebar-muted: rgba(255, 255, 255, 0.6);
+  --workspace-chip-bg: rgba(255, 255, 255, 0.06);
+  --workspace-chip-border: rgba(255, 255, 255, 0.08);
+  --workspace-chip-hover: rgba(255, 255, 255, 0.1);
+  --workspace-agent-card: rgba(255, 255, 255, 0.06);
+  --workspace-user-card: linear-gradient(135deg, #2958d8 0%, #1d45b1 100%);
+  --canvas-surface: rgba(16, 25, 36, 0.78);
+  --canvas-surface-strong: #111b27;
+  --canvas-border: rgba(255, 255, 255, 0.08);
+  --canvas-text: #f4f7fb;
+  --canvas-muted: #9ba7bc;
+  --canvas-accent: #6e95ff;
+  --canvas-grid-line: rgba(145, 164, 202, 0.12);
+  --canvas-grid-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.03));
+  --canvas-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -195,5 +238,325 @@ a {
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
     @apply rounded-[1.75rem] backdrop-blur-xl;
+  }
+
+  .workspace-shell {
+    background:
+      radial-gradient(circle at top left, rgba(83, 119, 255, 0.12), transparent 0 22%),
+      radial-gradient(circle at bottom right, rgba(49, 103, 246, 0.08), transparent 0 24%);
+  }
+
+  .workspace-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--workspace-sidebar-bg);
+    border-right: 1px solid var(--workspace-sidebar-border);
+  }
+
+  .workspace-new-btn {
+    background: linear-gradient(135deg, #3f73ff 0%, #3167f6 100%);
+    color: white;
+    box-shadow: 0 16px 30px rgba(49, 103, 246, 0.25);
+    @apply inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5;
+  }
+
+  .workspace-search {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(68, 145, 255, 0.8);
+    box-shadow: inset 0 0 0 1px rgba(68, 145, 255, 0.15);
+    @apply flex items-center gap-3 rounded-2xl px-4 py-3;
+  }
+
+  .workspace-search input {
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: white;
+    font-size: 0.95rem;
+  }
+
+  .workspace-search input::placeholder {
+    color: rgba(255, 255, 255, 0.42);
+  }
+
+  .workspace-filter {
+    background: var(--workspace-chip-bg);
+    color: white;
+    border: 1px solid var(--workspace-chip-border);
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm transition duration-200 hover:-translate-y-0.5;
+  }
+
+  .workspace-filter:hover {
+    background: var(--workspace-chip-hover);
+  }
+
+  .workspace-message-card {
+    border-radius: 1.35rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .workspace-message-card--agent {
+    background: var(--workspace-agent-card);
+    box-shadow: inset 3px 0 0 rgba(68, 145, 255, 0.92);
+  }
+
+  .workspace-message-card--user {
+    background: var(--workspace-user-card);
+    box-shadow: 0 16px 30px rgba(41, 88, 216, 0.24);
+  }
+
+  .workspace-history-item {
+    width: 100%;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    @apply flex items-center justify-between gap-3 rounded-2xl px-4 py-3 transition duration-200 hover:-translate-y-0.5;
+  }
+
+  .workspace-history-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .workspace-prompt {
+    min-height: 92px;
+    width: 100%;
+    resize: vertical;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 1rem;
+    color: white;
+    outline: none;
+  }
+
+  .workspace-prompt::placeholder {
+    color: rgba(255, 255, 255, 0.42);
+  }
+
+  .workspace-send-btn {
+    width: 100%;
+    border: 0;
+    background: linear-gradient(135deg, #3f73ff 0%, #3167f6 100%);
+    color: white;
+    @apply inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .workspace-canvas-wrap {
+    min-width: 0;
+    background:
+      radial-gradient(circle at top right, rgba(49, 103, 246, 0.08), transparent 0 18%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 18%);
+    @apply flex flex-col;
+  }
+
+  .workspace-canvas-header {
+    border-bottom: 1px solid var(--canvas-border);
+    @apply flex flex-col gap-4 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-7;
+  }
+
+  .workspace-avatar-button {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    background: linear-gradient(135deg, #ff8db3 0%, #3167f6 100%);
+    color: white;
+    cursor: pointer;
+    @apply inline-flex items-center justify-center text-sm font-bold shadow-lg;
+  }
+
+  .workspace-avatar-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.75rem);
+    width: min(18rem, 80vw);
+    z-index: 20;
+    background: var(--canvas-surface-strong);
+    border: 1px solid var(--canvas-border);
+    box-shadow: var(--canvas-shadow);
+    @apply rounded-3xl p-2;
+  }
+
+  .workspace-avatar-menu__item {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--canvas-text);
+    text-decoration: none;
+    @apply flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition duration-200 hover:bg-black/5;
+  }
+
+  [data-theme="dark"] .workspace-avatar-menu__item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .workspace-banner {
+    margin: 1rem 1.25rem 0;
+    border: 1px solid var(--canvas-border);
+    background: color-mix(in srgb, var(--canvas-surface-strong) 84%, transparent);
+    color: var(--canvas-muted);
+    @apply rounded-2xl px-4 py-3 text-sm md:mx-7;
+  }
+
+  .workspace-canvas {
+    position: relative;
+    flex: 1;
+    padding: 1rem 1.25rem 1.5rem;
+    overflow: hidden;
+  }
+
+  .workspace-canvas-grid {
+    position: absolute;
+    inset: 1rem 1.25rem 1.5rem;
+    pointer-events: none;
+    border-radius: 2rem;
+    border: 1px solid var(--canvas-border);
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 37px,
+        var(--canvas-grid-line) 37px,
+        var(--canvas-grid-line) 38px
+      ),
+      var(--canvas-grid-bg);
+  }
+
+  .workspace-canvas-stack {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 1.5rem;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 1rem 0.25rem 2rem;
+  }
+
+  .workspace-artifact {
+    position: relative;
+    background: var(--canvas-surface);
+    border: 1px solid var(--canvas-border);
+    border-top: 4px solid transparent;
+    box-shadow: var(--canvas-shadow);
+    @apply rounded-[2rem] p-6 md:p-8;
+  }
+
+  .workspace-mini-card {
+    background: color-mix(in srgb, var(--canvas-surface-strong) 90%, transparent);
+    border: 1px solid var(--canvas-border);
+    @apply rounded-[1.4rem] p-5;
+  }
+
+  .workspace-stat-card {
+    background: color-mix(in srgb, var(--canvas-surface-strong) 92%, transparent);
+    border: 1px solid var(--canvas-border);
+    min-width: 0;
+    @apply rounded-[1.4rem] p-5;
+  }
+
+  .workspace-post-preview {
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 2px solid color-mix(in srgb, var(--canvas-accent) 90%, white 10%);
+    background: white;
+    box-shadow: 0 20px 40px rgba(49, 103, 246, 0.12);
+  }
+
+  .workspace-post-top {
+    background: #ffffff;
+    @apply flex items-center gap-3 px-4 py-4;
+  }
+
+  .workspace-avatar-dot {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #d5e5ff 0%, #c2d3f3 100%);
+  }
+
+  .workspace-post-body {
+    background: linear-gradient(180deg, #1a2440 0%, #172137 100%);
+    padding: 2rem;
+  }
+
+  .workspace-post-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    color: #64748b;
+    font-size: 0.78rem;
+    text-align: center;
+    background: #ffffff;
+  }
+
+  .workspace-skeleton {
+    height: 10rem;
+    border-radius: 1.4rem;
+    background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.24), rgba(148, 163, 184, 0.12));
+    background-size: 200% 100%;
+    animation: workspace-pulse 1.4s ease infinite;
+  }
+}
+
+@keyframes workspace-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .workspace-shell {
+    padding: 0.75rem;
+  }
+
+  .workspace-canvas-header {
+    padding-inline: 1.25rem;
+  }
+
+  .workspace-banner {
+    margin-inline: 1.25rem;
+  }
+
+  .workspace-canvas-grid {
+    inset-inline: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :root,
+  [data-theme="dark"] {
+    --workspace-frame: linear-gradient(180deg, #101827 0%, #101827 28%, #f7f3ed 28%, #f7f3ed 100%);
+  }
+
+  [data-theme="dark"] {
+    --workspace-frame: linear-gradient(180deg, #0a1019 0%, #0a1019 28%, #0f1822 28%, #0f1822 100%);
+  }
+
+  .workspace-canvas {
+    padding-inline: 0.75rem;
+  }
+
+  .workspace-canvas-grid {
+    inset-inline: 0.75rem;
+  }
+
+  .workspace-canvas-stack {
+    padding-inline: 0;
+  }
+
+  .workspace-artifact {
+    padding: 1.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .workspace-post-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

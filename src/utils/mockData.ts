@@ -8,6 +8,20 @@ import type {
 } from "../types";
 
 export const emptyProfile: UserProfile = {
+  fullName: "",
+  profession: "",
+  industry: "",
+  country: "",
+  yearsOfExperience: "",
+  targetAudience: "",
+  careerGoal: "",
+  personalBrandGoal: "",
+  communicationStyle: "",
+  contentTopics: "",
+  linkedInUrl: "",
+};
+
+export const sampleProfile: UserProfile = {
   fullName: "María Fernanda Soto",
   profession: "Product Marketing Manager",
   industry: "SaaS B2B",
