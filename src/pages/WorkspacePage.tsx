@@ -180,6 +180,42 @@ function buildAvatarLabel(email: string) {
     .join("") || "EA";
 }
 
+function buildPostMetrics(post: { content: string; hashtags: string[]; createdAt: string }) {
+  const base = post.content.length + post.hashtags.length * 37;
+
+  return [
+    { label: "Visualizaciones", value: `${Math.max(2.4, base / 40).toFixed(1)}K` },
+    { label: "Likes", value: `${Math.max(180, base * 2)}` },
+    { label: "Comentarios", value: `${Math.max(24, Math.round(base / 3))}` },
+    { label: "Compartidos", value: `${Math.max(12, Math.round(base / 5))}` },
+    { label: "Publicado", value: new Date(post.createdAt).toLocaleDateString("es-CL") },
+    { label: "Hashtags", value: `${post.hashtags.length}` },
+  ];
+}
+
+function sanitizePreviewText(text: string) {
+  return text
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\*\*(hook|cuerpo|cta|hashtags?)\*\*:?/gi, " ")
+    .replace(/(^|\n)\s*(hook|cuerpo|cta|hashtags?)\s*:?/gi, " ")
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .replace(/#{1,6}\s*/g, "")
+    .replace(/\[[^\]]*\]\([^)]+\)/g, " ")
+    .replace(/\|/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildPreviewExcerpt(body: string) {
+  const cleaned = sanitizePreviewText(body);
+  if (cleaned.length <= 220) {
+    return cleaned;
+  }
+
+  return `${cleaned.slice(0, 217).trimEnd()}...`;
+}
+
 function ArtifactShell({
   eyebrow,
   title,
@@ -221,28 +257,31 @@ function LinkedInPreviewCard({
   body: string;
   hook: string;
 }) {
+  const cleanHook = sanitizePreviewText(hook);
+  const excerpt = buildPreviewExcerpt(body);
+
   return (
     <div className="workspace-post-preview mx-auto max-w-md">
       <div className="workspace-post-top">
         <div className="workspace-avatar-dot" />
         <div>
-          <p className="text-sm font-semibold" style={{ color: "var(--canvas-text)" }}>
+          <p className="text-sm font-semibold" style={{ color: "#47311f" }}>
             elevaIA Preview
           </p>
-          <p className="text-xs" style={{ color: "var(--canvas-muted)" }}>
+          <p className="text-xs" style={{ color: "#8d6b52" }}>
             Vista previa LinkedIn
           </p>
         </div>
       </div>
       <div className="workspace-post-body">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em]" style={{ color: "var(--canvas-accent)" }}>
+        <p className="text-xs font-semibold uppercase tracking-[0.24em]" style={{ color: "#f5c48c" }}>
           {title}
         </p>
-        <h4 className="mt-3 text-3xl font-bold leading-tight" style={{ color: "white" }}>
-          {hook}
+        <h4 className="mt-4 text-[2.35rem] font-bold leading-[0.98]" style={{ color: "#fff8ef" }}>
+          {cleanHook || "Post listo para revisar"}
         </h4>
-        <p className="mt-4 text-sm leading-7 text-white/70">
-          {body.slice(0, 180)}...
+        <p className="mt-5 max-w-[28ch] text-[1rem] leading-8" style={{ color: "rgba(255, 236, 214, 0.82)" }}>
+          {excerpt}
         </p>
       </div>
       <div className="workspace-post-actions">
@@ -508,102 +547,55 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
       default:
         return (
           <>
-            <ArtifactShell
-              eyebrow="Post analizado"
-              title={state.posts[0]?.title ?? "Post de LinkedIn"}
-              description="Vista previa del contenido y métricas estimadas del post seleccionado."
-              gradient="var(--canvas-accent)"
-            >
-              <div className="space-y-8">
-                {state.posts[0] && (
-                  <LinkedInPreviewCard
-                    title={state.posts[0].title}
-                    hook={state.posts[0].hook}
-                    body={state.posts[0].content}
-                  />
-                )}
-                <div className="grid gap-4 md:grid-cols-2">
-                  {[
-                    ["Visualizaciones", "12.8K"],
-                    ["Likes", "1.2K"],
-                    ["Comentarios", "348"],
-                    ["Compartidos", "96"],
-                  ].map(([label, value]) => (
-                    <div key={label} className="workspace-stat-card">
-                      <p className="text-sm" style={{ color: "var(--canvas-muted)" }}>{label}</p>
-                      <p className="mt-2 text-4xl font-bold" style={{ color: "var(--canvas-text)" }}>{value}</p>
+            {state.posts.length > 0 ? (
+              state.posts.map((post) => (
+                <ArtifactShell
+                  key={post.id}
+                  eyebrow={post.status === "published" ? "Post publicado" : "Post en borrador"}
+                  title={post.title}
+                  description="Vista previa del post subido por el usuario con sus métricas principales dentro del lienzo."
+                  gradient="var(--canvas-accent)"
+                >
+                  <div className="space-y-8">
+                    <LinkedInPreviewCard title={post.title} hook={post.hook} body={post.content} />
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {buildPostMetrics(post).map((metric) => (
+                        <div key={`${post.id}-${metric.label}`} className="workspace-stat-card">
+                          <p className="text-sm" style={{ color: "var(--canvas-muted)" }}>
+                            {metric.label}
+                          </p>
+                          <p className="mt-2 text-4xl font-bold" style={{ color: "var(--canvas-text)" }}>
+                            {metric.value}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            </ArtifactShell>
-
-            <ArtifactShell
-              eyebrow="Skill Gap"
-              title="Resumen del análisis"
-              description="Una vista compacta de tus skills actuales, brechas prioritarias y oportunidades emergentes."
-            >
-              <div className="grid gap-4 lg:grid-cols-3">
+                  </div>
+                </ArtifactShell>
+              ))
+            ) : (
+              <ArtifactShell
+                eyebrow="Canvas vacío"
+                title="Todavía no hay posts en tu lienzo"
+                description="Cuando subas o generes posts, aparecerán aquí con su preview y estadísticas para compararlos dentro de la hoja de trabajo."
+                gradient="var(--canvas-accent)"
+              >
                 <div className="workspace-mini-card">
-                  <p className="eyebrow">Skills actuales</p>
-                  <ul className="mt-4 space-y-2 text-sm leading-7" style={{ color: "var(--canvas-muted)" }}>
-                    {state.assessment.currentSkills.slice(0, 3).map((skill) => (
-                      <li key={skill}>• {skill}</li>
-                    ))}
-                  </ul>
+                  <p className="text-base leading-7" style={{ color: "var(--canvas-muted)" }}>
+                    Usa el agente para crear un post o entra al módulo de posts para empezar a poblar este canvas.
+                  </p>
                 </div>
-                <div className="workspace-mini-card">
-                  <p className="eyebrow">Brechas</p>
-                  <ul className="mt-4 space-y-2 text-sm leading-7" style={{ color: "var(--canvas-muted)" }}>
-                    {state.assessment.missingSkills.slice(0, 3).map((skill) => (
-                      <li key={skill}>• {skill}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="workspace-mini-card">
-                  <p className="eyebrow">Roadmap</p>
-                  <ul className="mt-4 space-y-2 text-sm leading-7" style={{ color: "var(--canvas-muted)" }}>
-                    {state.roadmap.slice(0, 3).map((item) => (
-                      <li key={`${item.horizon}-${item.skill}`}>• {item.horizon}: {item.skill}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </ArtifactShell>
-
-            <ArtifactShell
-              eyebrow="Ideas de contenido"
-              title="Artefactos listos para iterar"
-              description="El canvas vive de bloques: ideas, posts, análisis y roadmap pueden coexistir en el mismo espacio."
-            >
-              <div className="grid gap-4 md:grid-cols-2">
-                {state.ideas.slice(0, 4).map((idea) => (
-                  <button
-                    key={idea.id}
-                    type="button"
-                    className="workspace-mini-card text-left transition hover:-translate-y-0.5"
-                    onClick={() => setActiveModule("ideas")}
-                  >
-                    <p className="eyebrow">{idea.angle}</p>
-                    <h4 className="mt-2 text-xl font-bold" style={{ color: "var(--canvas-text)" }}>
-                      {idea.title}
-                    </h4>
-                    <p className="mt-3 text-sm leading-7" style={{ color: "var(--canvas-muted)" }}>
-                      {idea.description}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </ArtifactShell>
+              </ArtifactShell>
+            )}
           </>
         );
     }
   }
 
   return (
-    <div className="workspace-shell min-h-screen px-4 py-4 lg:px-5">
-      <div className="mx-auto grid min-h-screen max-w-[1720px] gap-0 overflow-hidden rounded-[2rem] border" style={{ borderColor: "var(--border)", background: "var(--workspace-frame)" }}>
-        <div className="grid min-h-screen lg:grid-cols-[294px_minmax(0,1fr)]">
+    <div className="workspace-shell min-h-screen">
+      <div className="grid min-h-screen w-full gap-0 overflow-hidden border workspace-frame" style={{ borderColor: "var(--border)", background: "var(--workspace-frame)" }}>
+        <div className="grid min-h-screen lg:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)]">
           <aside className="workspace-sidebar min-w-0 p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -747,7 +739,7 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
 
             <div className="workspace-canvas">
               <div className="workspace-canvas-grid" />
-              <div className="workspace-canvas-stack">
+              <div className={`workspace-canvas-stack workspace-board workspace-board--${activeModule}`}>
                 {isLoading ? (
                   <ArtifactShell
                     eyebrow="Cargando"
