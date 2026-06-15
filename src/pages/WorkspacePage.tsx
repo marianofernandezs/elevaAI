@@ -3,13 +3,13 @@ import {
   BarChart3,
   BookOpen,
   Bot,
-  ChevronRight,
   FilePenLine,
-  FileUp,
   FileText,
+  FileUp,
   Lightbulb,
-  Plus,
-  Search,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings,
   Sparkles,
   Upload,
   UserCircle2,
@@ -25,6 +25,7 @@ import ProfileForm from "../components/profile/ProfileForm";
 import ResumeUploader from "../components/resume/ResumeUploader";
 import ThemeToggle from "../components/ui/ThemeToggle";
 import { useAuth } from "../contexts/AuthContext";
+import { renderMarkdown } from "../utils/markdown";
 import { useWorkspaceData } from "../hooks/useWorkspaceData";
 import {
   analyzeSkillGap,
@@ -44,6 +45,18 @@ type WorkspaceModule =
   | "roadmap"
   | "library";
 
+type ArtifactType =
+  | "empty"
+  | "welcome"
+  | "linkedin_post"
+  | "skill_gap"
+  | "roadmap"
+  | "cv_analysis"
+  | "content_ideas"
+  | "hooks"
+  | "profile"
+  | "library";
+
 interface WorkspacePageProps {
   initialModule?: WorkspaceModule;
 }
@@ -54,68 +67,6 @@ interface ChatMessage {
   text: string;
 }
 
-const moduleMeta: Record<
-  WorkspaceModule,
-  { title: string; route: string; description: string; accent: string }
-> = {
-  overview: {
-    title: "Lienzo de trabajo",
-    route: "/workspace",
-    description: "Aquí aparecen los artefactos que va generando tu agente.",
-    accent: "Canvas vivo",
-  },
-  profile: {
-    title: "Perfil profesional",
-    route: "/profile",
-    description: "El contexto base que usa tu agente para escribir, analizar y recomendar.",
-    accent: "Contexto",
-  },
-  posts: {
-    title: "Post de LinkedIn",
-    route: "/workspace/posts",
-    description: "Genera, itera y previsualiza publicaciones listas para mejorar.",
-    accent: "Post generado",
-  },
-  ideas: {
-    title: "Ideas y hooks",
-    route: "/workspace/ideas",
-    description: "Bloques de autoridad, storytelling y ganchos para abrir conversación.",
-    accent: "Contenido",
-  },
-  resume: {
-    title: "Análisis de CV",
-    route: "/resume-upload",
-    description: "Sube tu CV y conviértelo en contexto accionable para el agente.",
-    accent: "CV",
-  },
-  skills: {
-    title: "Skill Gap Analysis",
-    route: "/skill-gap",
-    description: "Cruza perfil, CV y señales del mercado para detectar brechas reales.",
-    accent: "Skills",
-  },
-  roadmap: {
-    title: "Roadmap de upskilling",
-    route: "/roadmap",
-    description: "Planifica acciones a 30 días, 90 días y 6 meses con foco en empleabilidad.",
-    accent: "Roadmap",
-  },
-  library: {
-    title: "Biblioteca",
-    route: "/library",
-    description: "Tus posts y artefactos guardados viven aquí como base de trabajo.",
-    accent: "Biblioteca",
-  },
-};
-
-const quickFilters: Array<{ label: string; module: WorkspaceModule; icon: LucideIcon }> = [
-  { label: "Post", module: "posts", icon: FilePenLine },
-  { label: "Hooks", module: "ideas", icon: Sparkles },
-  { label: "Ideas", module: "ideas", icon: Lightbulb },
-  { label: "CV", module: "resume", icon: Upload },
-  { label: "Skills", module: "skills", icon: BarChart3 },
-];
-
 const routeTabs: Array<{ label: string; module: WorkspaceModule; icon: LucideIcon }> = [
   { label: "Workspace", module: "overview", icon: Bot },
   { label: "Perfil", module: "profile", icon: UserCircle2 },
@@ -125,73 +76,18 @@ const routeTabs: Array<{ label: string; module: WorkspaceModule; icon: LucideIco
   { label: "Biblioteca", module: "library", icon: BookOpen },
 ];
 
-function makeAgentReply(prompt: string, activeModule: WorkspaceModule) {
-  const lowered = prompt.toLowerCase();
 
-  if (lowered.includes("post")) {
-    return {
-      module: "posts" as WorkspaceModule,
-      reply: "Voy a generar un post y mostrarlo como artefacto principal dentro del canvas.",
-    };
-  }
-  if (lowered.includes("hook")) {
-    return {
-      module: "ideas" as WorkspaceModule,
-      reply: "Abrí el bloque de ideas y hooks para trabajar aperturas más fuertes dentro del lienzo.",
-    };
-  }
-  if (lowered.includes("cv")) {
-    return {
-      module: "resume" as WorkspaceModule,
-      reply: "Te llevo al artefacto de CV para subirlo, resumirlo y volver a analizarlo cuando quieras.",
-    };
-  }
-  if (lowered.includes("skill") || lowered.includes("brecha")) {
-    return {
-      module: "skills" as WorkspaceModule,
-      reply: "Abrí el artefacto de skill gap para cruzar perfil, CV y señales del mercado.",
-    };
-  }
-  if (lowered.includes("roadmap")) {
-    return {
-      module: "roadmap" as WorkspaceModule,
-      reply: "Voy a enfocar el lienzo en el roadmap para revisar próximas acciones y contenido asociado.",
-    };
-  }
-  if (lowered.includes("perfil")) {
-    return {
-      module: "profile" as WorkspaceModule,
-      reply: "Abrí el contexto profesional para afinar cómo piensa y escribe tu agente.",
-    };
-  }
-
-  return {
-    module: activeModule,
-    reply: "Puedo convertir tus instrucciones en posts, ideas, hooks, análisis de CV, skill gap o roadmap. Dime qué artefacto quieres ver en el canvas.",
-  };
-}
 
 function buildAvatarLabel(email: string) {
   const base = email.split("@")[0] ?? "EA";
-  return base
-    .split(/[.\-_]/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "EA";
-}
-
-function buildPostMetrics(post: { content: string; hashtags: string[]; createdAt: string }) {
-  const base = post.content.length + post.hashtags.length * 37;
-
-  return [
-    { label: "Visualizaciones", value: `${Math.max(2.4, base / 40).toFixed(1)}K` },
-    { label: "Likes", value: `${Math.max(180, base * 2)}` },
-    { label: "Comentarios", value: `${Math.max(24, Math.round(base / 3))}` },
-    { label: "Compartidos", value: `${Math.max(12, Math.round(base / 5))}` },
-    { label: "Publicado", value: new Date(post.createdAt).toLocaleDateString("es-CL") },
-    { label: "Hashtags", value: `${post.hashtags.length}` },
-  ];
+  return (
+    base
+      .split(/[.\-_]/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "EA"
+  );
 }
 
 function sanitizePreviewText(text: string) {
@@ -210,11 +106,24 @@ function sanitizePreviewText(text: string) {
 
 function buildPreviewExcerpt(body: string) {
   const cleaned = sanitizePreviewText(body);
-  if (cleaned.length <= 220) {
+  if (cleaned.length <= 240) {
     return cleaned;
   }
 
-  return `${cleaned.slice(0, 217).trimEnd()}...`;
+  return `${cleaned.slice(0, 237).trimEnd()}...`;
+}
+
+function buildPostMetrics(post: { content: string; hashtags: string[]; createdAt: string }) {
+  const base = post.content.length + post.hashtags.length * 37;
+
+  return [
+    { label: "Visualizaciones", value: `${Math.max(2.4, base / 40).toFixed(1)}K` },
+    { label: "Likes", value: `${Math.max(180, base * 2)}` },
+    { label: "Comentarios", value: `${Math.max(24, Math.round(base / 3))}` },
+    { label: "Compartidos", value: `${Math.max(12, Math.round(base / 5))}` },
+    { label: "Publicado", value: new Date(post.createdAt).toLocaleDateString("es-CL") },
+    { label: "Hashtags", value: `${post.hashtags.length}` },
+  ];
 }
 
 function ArtifactShell({
@@ -222,19 +131,14 @@ function ArtifactShell({
   title,
   description,
   children,
-  gradient,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   children: React.ReactNode;
-  gradient?: string;
 }) {
   return (
-    <article
-      className="workspace-artifact"
-      style={gradient ? { borderTopColor: gradient } : undefined}
-    >
+    <article className="workspace-artifact workspace-artifact--product">
       <div className="space-y-2">
         <p className="eyebrow">{eyebrow}</p>
         <h3 className="text-3xl font-bold leading-tight" style={{ color: "var(--canvas-text)" }}>
@@ -294,6 +198,11 @@ function LinkedInPreviewCard({
   );
 }
 
+function initialAgentMessage(name: string) {
+  const safeName = name || "ahí";
+  return `Hola ${safeName} 👋 ¿En qué te puedo ayudar hoy?`;
+}
+
 export default function WorkspacePage({ initialModule = "overview" }: WorkspacePageProps) {
   const { signOut, userEmail } = useAuth();
   const {
@@ -309,48 +218,99 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
     saveAssessment,
   } = useWorkspaceData();
   const [activeModule, setActiveModule] = useState<WorkspaceModule>(initialModule);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [artifact, setArtifact] = useState<ArtifactType>("empty");
+  const [chatOpen, setChatOpen] = useState(true);
   const [prompt, setPrompt] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "agent-welcome",
-      role: "agent",
-      text: "Puedo ayudarte a crear posts, hooks, ideas, análisis de CV, skill gap y roadmap. Escribe una instrucción y lo convierto en artefactos dentro del lienzo.",
-    },
-  ]);
   const [isAgentWorking, setIsAgentWorking] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+  const toggleChat = () => setChatOpen((value) => !value);
 
   useEffect(() => {
     setActiveModule(initialModule);
   }, [initialModule]);
 
-  const conversationItems = useMemo(
+  useEffect(() => {
+    const firstName = state.profile.fullName.split(" ")[0] ?? "";
+    setMessages([
+      {
+        id: "agent-welcome",
+        role: "agent",
+        text: initialAgentMessage(firstName),
+      },
+    ]);
+  }, [state.profile.fullName]);
+
+  useEffect(() => {
+    if (initialModule === "overview") {
+      setArtifact("empty");
+      return;
+    }
+
+    const moduleToArtifact: Record<Exclude<WorkspaceModule, "overview">, ArtifactType> = {
+      profile: "profile",
+      posts: "linkedin_post",
+      ideas: "content_ideas",
+      resume: "cv_analysis",
+      skills: "skill_gap",
+      roadmap: "roadmap",
+      library: "library",
+    };
+
+    setArtifact(moduleToArtifact[initialModule as Exclude<WorkspaceModule, "overview">] ?? "empty");
+  }, [initialModule]);
+
+  const recentArtifacts = useMemo(
     () =>
       [
-        ...state.posts.map((post) => ({
-          id: `post-${post.id}`,
-          title: post.title,
-          description: post.goal,
-          module: "posts" as WorkspaceModule,
+        ...state.posts.slice(0, 3).map((post) => ({
+          id: post.id,
+          label: post.title,
+          artifact: "linkedin_post" as ArtifactType,
         })),
-        ...state.ideas.map((idea) => ({
-          id: `idea-${idea.id}`,
-          title: idea.title,
-          description: idea.pillar,
-          module: "ideas" as WorkspaceModule,
+        ...state.ideas.slice(0, 2).map((idea) => ({
+          id: idea.id,
+          label: idea.title,
+          artifact: "content_ideas" as ArtifactType,
         })),
-        {
-          id: "skills-last",
-          title: "Último skill gap",
-          description: `Score ${state.assessment.competitivenessScore}`,
-          module: "skills" as WorkspaceModule,
-        },
-      ].filter((item) => {
-        const combined = `${item.title} ${item.description}`.toLowerCase();
-        return combined.includes(searchTerm.toLowerCase());
-      }),
-    [searchTerm, state.assessment.competitivenessScore, state.ideas, state.posts],
+      ].slice(0, 5),
+    [state.ideas, state.posts],
   );
+
+  function openArtifact(nextArtifact: ArtifactType) {
+    setArtifact(nextArtifact);
+    const artifactToModule: Partial<Record<ArtifactType, WorkspaceModule>> = {
+      linkedin_post: "posts",
+      skill_gap: "skills",
+      roadmap: "roadmap",
+      cv_analysis: "resume",
+      content_ideas: "ideas",
+      hooks: "ideas",
+      profile: "profile",
+      library: "library",
+      empty: "overview",
+      welcome: "overview",
+    };
+    setActiveModule(artifactToModule[nextArtifact] ?? "overview");
+  }
+
+  async function handleQuickAction(nextArtifact: ArtifactType) {
+    openArtifact(nextArtifact);
+
+    if (nextArtifact === "content_ideas") {
+      const nextIdeas = await generateIdeas(state.profile);
+      await refreshIdeas(nextIdeas);
+    }
+
+    if (nextArtifact === "skill_gap" && state.resume) {
+      const nextAssessment = await analyzeSkillGap({
+        profile: state.profile,
+        resumeText: state.resume.extractedText,
+      });
+      const nextRoadmap = await generateRoadmap(nextAssessment);
+      await saveAssessment(nextAssessment, nextRoadmap);
+    }
+  }
 
   async function handleAgentSubmit(nextPrompt?: string) {
     const finalPrompt = (nextPrompt ?? prompt).trim();
@@ -359,21 +319,13 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
     }
 
     setIsAgentWorking(true);
-    setMessages((current) => [
-      ...current,
-      { id: crypto.randomUUID(), role: "user", text: finalPrompt },
-    ]);
+    setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", text: finalPrompt }]);
 
     try {
-      const { module, reply } = makeAgentReply(finalPrompt, activeModule);
-      setActiveModule(module);
+      const lowered = finalPrompt.toLowerCase();
 
-      if (module === "ideas") {
-        const nextIdeas = await generateIdeas(state.profile);
-        await refreshIdeas(nextIdeas);
-      }
-
-      if (module === "posts" && finalPrompt.toLowerCase().includes("post")) {
+      if (lowered.includes("post")) {
+        openArtifact("linkedin_post");
         const generatedPost = await generateLinkedInPost({
           profile: state.profile,
           baseIdea: finalPrompt,
@@ -382,79 +334,175 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
           length: "Media",
         });
         await createPost(generatedPost);
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "agent",
+            text: "Perfecto. Ya abrí el canvas de post y generé una primera versión para iterarla contigo.",
+          },
+        ]);
+        return;
       }
 
-      if (module === "skills" && state.resume) {
-        const nextAssessment = await analyzeSkillGap({
-          profile: state.profile,
-          resumeText: state.resume.extractedText,
-        });
-        const nextRoadmap = await generateRoadmap(nextAssessment);
-        await saveAssessment(nextAssessment, nextRoadmap);
-      }
-
-      if (module === "ideas" && finalPrompt.toLowerCase().includes("hook")) {
+      if (lowered.includes("hook")) {
+        openArtifact("hooks");
         const hooks = await generateHooks({ profile: state.profile, topic: finalPrompt });
         setMessages((current) => [
           ...current,
           {
             id: crypto.randomUUID(),
             role: "agent",
-            text: `${reply}\n\nHooks sugeridos:\n- ${hooks.slice(0, 3).join("\n- ")}`,
+            text: `Te dejé el canvas listo para hooks.\n\nHooks sugeridos:\n- ${hooks.slice(0, 3).join("\n- ")}`,
           },
         ]);
-      } else {
+        return;
+      }
+
+      if (lowered.includes("cv")) {
+        openArtifact("cv_analysis");
         setMessages((current) => [
           ...current,
-          { id: crypto.randomUUID(), role: "agent", text: reply },
+          {
+            id: crypto.randomUUID(),
+            role: "agent",
+            text: "Abrí el módulo de CV en el canvas para que subas o vuelvas a analizar tu archivo.",
+          },
         ]);
+        return;
       }
+
+      if (lowered.includes("skill") || lowered.includes("brecha")) {
+        openArtifact("skill_gap");
+        if (state.resume) {
+          const nextAssessment = await analyzeSkillGap({
+            profile: state.profile,
+            resumeText: state.resume.extractedText,
+          });
+          const nextRoadmap = await generateRoadmap(nextAssessment);
+          await saveAssessment(nextAssessment, nextRoadmap);
+        }
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "agent",
+            text: "Abrí el Skill Gap Analysis en el canvas para que revisemos brechas, fortalezas y prioridades.",
+          },
+        ]);
+        return;
+      }
+
+      if (lowered.includes("roadmap")) {
+        openArtifact("roadmap");
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "agent",
+            text: "Ya tienes el canvas enfocado en roadmap para priorizar próximos pasos.",
+          },
+        ]);
+        return;
+      }
+
+      if (lowered.includes("idea")) {
+        openArtifact("content_ideas");
+        const nextIdeas = await generateIdeas(state.profile);
+        await refreshIdeas(nextIdeas);
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "agent",
+            text: "Generé nuevas ideas de contenido y abrí el canvas para trabajarlas.",
+          },
+        ]);
+        return;
+      }
+
+      setMessages((current) => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          role: "agent",
+          text: "Puedo ayudarte a crear un post, analizar tu CV, abrir el skill gap, generar roadmap, ideas o hooks. Elige una acción o escríbeme exactamente qué quieres crear.",
+        },
+      ]);
     } finally {
       setPrompt("");
       setIsAgentWorking(false);
     }
   }
 
-  function renderModuleArtifact() {
-    switch (activeModule) {
+  function renderCanvas() {
+    if (isLoading) {
+      return (
+        <ArtifactShell
+          eyebrow="Cargando"
+          title="Preparando tu lienzo"
+          description="Estamos recuperando tu perfil, posts, CV y análisis guardados."
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="workspace-skeleton" />
+            ))}
+          </div>
+        </ArtifactShell>
+      );
+    }
+
+    switch (artifact) {
       case "profile":
         return (
           <ArtifactShell
             eyebrow="Perfil profesional"
-            title="Contexto del agente"
-            description="Este bloque mantiene la información base que guía todos tus prompts, análisis y recomendaciones."
-            gradient="var(--canvas-accent)"
+            title="Edita tu contexto base"
+            description="Actualiza el perfil que alimenta todos los prompts, análisis y recomendaciones del agente."
           >
-            <ProfileForm profile={state.profile} onChange={saveProfile} />
+            <ProfileForm profile={state.profile} onChange={saveProfile} hideHeader={true} />
           </ArtifactShell>
         );
-      case "posts":
+      case "linkedin_post":
         return (
           <ArtifactShell
-            eyebrow="Post generado"
-            title={state.posts[0]?.title ?? "Generador de posts"}
-            description="Vista de trabajo para crear publicaciones, previsualizarlas y guardarlas en la biblioteca."
-            gradient="var(--canvas-accent)"
+            eyebrow="Artifact · LinkedIn Post"
+            title={state.posts[0]?.title ?? "Crear primer post"}
+            description="Aquí aparece el artefacto del post. Puedes generarlo, revisarlo y seguir iterando desde el chat."
           >
             <div className="space-y-8">
-              {state.posts[0] && (
-                <LinkedInPreviewCard
-                  title={state.posts[0].title}
-                  hook={state.posts[0].hook}
-                  body={state.posts[0].content}
-                />
-              )}
+              {state.posts[0] ? (
+                <>
+                  <LinkedInPreviewCard
+                    title={state.posts[0].title}
+                    hook={state.posts[0].hook}
+                    body={state.posts[0].content}
+                  />
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {buildPostMetrics(state.posts[0]).map((metric) => (
+                      <div key={metric.label} className="workspace-stat-card">
+                        <p className="text-sm" style={{ color: "var(--canvas-muted)" }}>
+                          {metric.label}
+                        </p>
+                        <p className="mt-2 text-4xl font-bold" style={{ color: "var(--canvas-text)" }}>
+                          {metric.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : null}
               <PostGenerator profile={state.profile} onPostCreated={createPost} />
             </div>
           </ArtifactShell>
         );
-      case "ideas":
+      case "content_ideas":
+      case "hooks":
         return (
           <ArtifactShell
-            eyebrow="Ideas y hooks"
-            title="Bloques de contenido"
-            description="El agente transforma tu posicionamiento en ideas, ángulos y hooks reutilizables para LinkedIn."
-            gradient="var(--canvas-accent)"
+            eyebrow={artifact === "hooks" ? "Artifact · Hooks" : "Artifact · Ideas"}
+            title={artifact === "hooks" ? "Hooks para LinkedIn" : "Ideas de contenido"}
+            description="El canvas muestra ideas y hooks sólo cuando decides abrir este artefacto desde el chat o desde una acción rápida."
           >
             <div className="space-y-8">
               <div className="grid gap-4 md:grid-cols-2">
@@ -474,24 +522,22 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
             </div>
           </ArtifactShell>
         );
-      case "resume":
+      case "cv_analysis":
         return (
           <ArtifactShell
-            eyebrow="CV"
-            title="Análisis de CV"
-            description="Sube o actualiza tu CV para convertirlo en contexto útil para skill gap, roadmap y contenido."
-            gradient="var(--canvas-accent)"
+            eyebrow="Artifact · CV Analysis"
+            title="Analizar CV"
+            description="Sube o actualiza tu CV para convertirlo en contexto reusable dentro del agente."
           >
-            <ResumeUploader resume={state.resume} onUpload={uploadResumeFile} />
+            <ResumeUploader resume={state.resume} onUpload={uploadResumeFile} hideHeader={true} />
           </ArtifactShell>
         );
-      case "skills":
+      case "skill_gap":
         return (
           <ArtifactShell
-            eyebrow="Skill Gap"
-            title="Brechas y fortalezas"
-            description="Tu agente cruza perfil, CV y señales del mercado para identificar prioridades reales."
-            gradient="var(--canvas-accent)"
+            eyebrow="Artifact · Skill Gap"
+            title="Skill Gap Analysis"
+            description="El resultado aparece aquí cuando decides revisar brechas, fortalezas y skills prioritarias."
           >
             <CareerPanel
               profile={state.profile}
@@ -499,287 +545,223 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
               assessment={state.assessment}
               roadmap={state.roadmap}
               onUpdate={saveAssessment}
+              hideHeader={true}
             />
           </ArtifactShell>
         );
       case "roadmap":
         return (
           <ArtifactShell
-            eyebrow="Roadmap"
-            title="Plan de crecimiento"
-            description="Acciones inmediatas, consolidación y diferenciación profesional conectadas con visibilidad en LinkedIn."
-            gradient="var(--canvas-accent)"
+            eyebrow="Artifact · Roadmap"
+            title="Roadmap de upskilling"
+            description="Prioriza acciones a 30, 90 días y 6 meses desde un artefacto dedicado del canvas."
           >
             <div className="space-y-4">
-              {state.roadmap.map((item) => (
-                <div key={`${item.horizon}-${item.skill}`} className="workspace-mini-card">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="eyebrow">{item.horizon}</p>
-                      <h4 className="mt-2 text-xl font-bold" style={{ color: "var(--canvas-text)" }}>
-                        {item.skill}
-                      </h4>
+              {state.roadmap.length > 0 ? (
+                state.roadmap.map((item) => (
+                  <div key={`${item.horizon}-${item.skill}`} className="workspace-mini-card">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="eyebrow">{item.horizon}</p>
+                        <h4 className="mt-2 text-xl font-bold" style={{ color: "var(--canvas-text)" }}>
+                          {item.skill}
+                        </h4>
+                      </div>
+                      <span className="badge-pill">{item.priority}</span>
                     </div>
-                    <span className="badge-pill">{item.priority}</span>
+                    <p className="mt-3 text-sm leading-7" style={{ color: "var(--canvas-muted)" }}>
+                      {item.reason}
+                    </p>
+                    <p className="mt-3 text-sm font-semibold" style={{ color: "var(--canvas-text)" }}>
+                      Impacto esperado: {item.expectedImpact}
+                    </p>
                   </div>
-                  <p className="mt-3 text-sm leading-7" style={{ color: "var(--canvas-muted)" }}>
-                    {item.reason}
-                  </p>
-                  <p className="mt-3 text-sm font-semibold" style={{ color: "var(--canvas-text)" }}>
-                    Impacto esperado: {item.expectedImpact}
+                ))
+              ) : (
+                <div className="workspace-mini-card">
+                  <p className="text-base leading-7" style={{ color: "var(--canvas-muted)" }}>
+                    Todavía no generas un roadmap. Usa el chat o la acción rápida para crearlo.
                   </p>
                 </div>
-              ))}
+              )}
             </div>
           </ArtifactShell>
         );
       case "library":
         return (
           <ArtifactShell
-            eyebrow="Biblioteca"
-            title="Posts y artefactos guardados"
-            description="Tu base de trabajo con drafts, publicaciones y materiales listos para iterar."
-            gradient="var(--canvas-accent)"
+            eyebrow="Artifact · Biblioteca"
+            title="Biblioteca de posts"
+            description="Los contenidos guardados viven aquí como artefacto de consulta dentro del canvas."
           >
-            <PostLibrary posts={state.posts} onUpdateStatus={setPostStatus} onDelete={deletePost} />
+            <PostLibrary posts={state.posts} onUpdateStatus={setPostStatus} onDelete={deletePost} hideHeader={true} />
           </ArtifactShell>
         );
-      case "overview":
+      case "welcome":
+      case "empty":
       default:
-        if (!state.profileAnalysis) {
-          return (
-            <ArtifactShell
-              eyebrow="Preparando workspace"
-              title="Todavía estamos construyendo tu análisis inicial"
-              description="Cuando el análisis del perfil esté listo, este lienzo mostrará tu posicionamiento, oportunidades y próximas acciones."
-              gradient="var(--canvas-accent)"
-            >
-              <div className="workspace-mini-card">
-                <p className="text-base leading-7" style={{ color: "var(--canvas-muted)" }}>
-                  Vuelve en unos segundos o recarga la app si acabas de terminar el onboarding.
-                </p>
-              </div>
-            </ArtifactShell>
-          );
-        }
-
         return (
-          <>
-            <ArtifactShell
-              eyebrow="Workspace principal"
-              title={`Hola ${state.profile.fullName.split(" ")[0] || "ahí"}, este es tu centro de crecimiento.`}
-              description="elevaIA ya detectó cómo deberías posicionarte en LinkedIn y cuáles son las siguientes palancas que más impacto pueden tener."
-              gradient="var(--canvas-accent)"
-            >
-              <div className="space-y-8">
-                <div className="workspace-mini-card">
-                  <p className="eyebrow">Posicionamiento detectado</p>
-                  <h4 className="mt-3 text-2xl font-bold" style={{ color: "var(--canvas-text)" }}>
-                    {state.profileAnalysis.positioningStatement}
-                  </h4>
-                  <p className="mt-4 text-base leading-8" style={{ color: "var(--canvas-muted)" }}>
-                    {state.profileAnalysis.professionalSummary}
-                  </p>
-                </div>
-
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="workspace-mini-card">
-                    <p className="eyebrow">3 oportunidades principales</p>
-                    <div className="mt-4 space-y-3">
-                      {state.profileAnalysis.topOpportunities.slice(0, 3).map((opportunity) => (
-                        <div key={opportunity} className="rounded-[1.1rem] border px-4 py-4" style={{ borderColor: "var(--canvas-border)" }}>
-                          <p className="text-sm leading-7" style={{ color: "var(--canvas-text)" }}>
-                            {opportunity}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="workspace-mini-card">
-                    <p className="eyebrow">3 acciones recomendadas</p>
-                    <div className="mt-4 space-y-3">
-                      {state.profileAnalysis.recommendedActions.slice(0, 3).map((action) => (
-                        <div key={action} className="rounded-[1.1rem] border px-4 py-4" style={{ borderColor: "var(--canvas-border)" }}>
-                          <p className="text-sm leading-7" style={{ color: "var(--canvas-text)" }}>
-                            {action}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  {[
-                    {
-                      label: "Crear primer post",
-                      copy: "Genera tu primera pieza de autoridad desde el canvas.",
-                      module: "posts" as WorkspaceModule,
-                      icon: FilePenLine,
-                    },
-                    {
-                      label: "Subir CV",
-                      copy: "Añade contexto real para análisis más precisos.",
-                      module: "resume" as WorkspaceModule,
-                      icon: FileUp,
-                    },
-                    {
-                      label: "Ver Skill Gap",
-                      copy: "Detecta tus brechas y señales del mercado.",
-                      module: "skills" as WorkspaceModule,
-                      icon: BarChart3,
-                    },
-                    {
-                      label: "Generar roadmap",
-                      copy: "Prioriza próximos pasos a 30, 90 días y 6 meses.",
-                      module: "roadmap" as WorkspaceModule,
-                      icon: Sparkles,
-                    },
-                  ].map(({ label, copy, module, icon: Icon }) => (
-                    <button
-                      key={label}
-                      type="button"
-                      className="workspace-mini-card text-left transition hover:-translate-y-0.5"
-                      onClick={() => setActiveModule(module)}
-                    >
-                      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl" style={{ background: "var(--accent-soft)", color: "var(--accent)" }}>
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <h4 className="mt-4 text-xl font-bold" style={{ color: "var(--canvas-text)" }}>
-                        {label}
-                      </h4>
-                      <p className="mt-3 text-sm leading-7" style={{ color: "var(--canvas-muted)" }}>
-                        {copy}
-                      </p>
-                    </button>
-                  ))}
-                </div>
+          <div className="workspace-empty-canvas">
+            <div className="workspace-empty-canvas__inner">
+              <p className="eyebrow">Canvas vacío</p>
+              <h2 className="mt-4 text-4xl font-bold" style={{ color: "var(--canvas-text)" }}>
+                Tu canvas está listo
+              </h2>
+              <p className="mt-4 max-w-2xl text-base leading-8" style={{ color: "var(--canvas-muted)" }}>
+                Los artefactos que genere elevaAI aparecerán aquí: posts, análisis de CV, skill gap, roadmap e ideas de contenido.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {[
+                  { label: "Crear post", artifact: "linkedin_post" as ArtifactType, icon: FilePenLine },
+                  { label: "Subir CV", artifact: "cv_analysis" as ArtifactType, icon: Upload },
+                  { label: "Generar roadmap", artifact: "roadmap" as ArtifactType, icon: Sparkles },
+                ].map(({ label, artifact: nextArtifact, icon: Icon }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    className="workspace-empty-action"
+                    onClick={() => void handleQuickAction(nextArtifact)}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {label}
+                  </button>
+                ))}
               </div>
-            </ArtifactShell>
-          </>
+            </div>
+          </div>
         );
     }
   }
 
+  const firstName = state.profile.fullName.split(" ")[0] ?? "Mariano";
+
   return (
     <div className="workspace-shell min-h-screen">
-      <div className="grid min-h-screen w-full gap-0 overflow-hidden border workspace-frame" style={{ borderColor: "var(--border)", background: "var(--workspace-frame)" }}>
-        <div className="grid min-h-screen lg:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[340px_minmax(0,1fr)]">
-          <aside className="workspace-sidebar min-w-0 p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h1 className="text-[2rem] font-extrabold leading-none text-white">elevaIA</h1>
-                <p className="mt-2 text-sm text-white/60">Agente de IA especializado en LinkedIn</p>
-              </div>
-              <button
-                type="button"
-                className="workspace-new-btn"
-                onClick={() => {
-                  setActiveModule("overview");
-                  setMessages((current) => [
-                    ...current,
-                    {
-                      id: crypto.randomUUID(),
-                      role: "agent",
-                      text: "Nuevo lienzo listo. Dime qué quieres crear y lo convierto en artefactos dentro del canvas.",
-                    },
-                  ]);
-                }}
-              >
-                <Plus className="h-4 w-4" />
-                Nuevo
-              </button>
-            </div>
-
-            <label className="mt-5 block">
-              <div className="workspace-search">
-                <Search className="h-4 w-4 text-white/40" />
-                <input
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Buscar conversación..."
-                />
-              </div>
-            </label>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {quickFilters.map(({ label, module, icon: Icon }) => (
-                <button
-                  key={label}
-                  type="button"
-                  className="workspace-filter"
-                  onClick={() => setActiveModule(module)}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">Conversación activa</p>
-              <div className="mt-3 space-y-3">
-                {messages.slice(-4).map((message) => (
-                  <div
-                    key={message.id}
-                    className={`workspace-message-card ${message.role === "user" ? "workspace-message-card--user" : "workspace-message-card--agent"}`}
+      <div
+        className="grid min-h-screen w-full gap-0 overflow-hidden border workspace-frame"
+        style={{ borderColor: "var(--border)", background: "var(--workspace-frame)" }}
+      >
+        <div className={`workspace-layout ${chatOpen ? "workspace-layout--chat-open" : "workspace-layout--chat-closed"}`}>
+          {chatOpen && (
+            <aside className="workspace-sidebar workspace-sidebar--chat min-w-0 p-5">
+              <div className="workspace-chat-header">
+                <div>
+                  <h1 className="text-[1.8rem] font-extrabold leading-none" style={{ color: "var(--workspace-chat-text)" }}>elevaIA</h1>
+                  <p className="mt-2 text-sm" style={{ color: "var(--workspace-chat-muted)" }}>Agente de IA especializado en LinkedIn</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ThemeToggle />
+                  <button
+                    type="button"
+                    className="workspace-chat-toggle"
+                    onClick={toggleChat}
+                    aria-label="Ocultar chat"
+                    title="Ocultar chat"
                   >
-                    <p className="text-sm font-semibold text-white">{message.role === "user" ? "Usuario" : "elevaIA"}</p>
-                    <p className="mt-2 text-sm leading-6 text-white/70">{message.text}</p>
-                  </div>
-                ))}
+                    <PanelLeftClose className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="mt-5 flex-1 space-y-2 overflow-y-auto pr-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">Artefactos recientes</p>
-              {conversationItems.map((item) => (
+              <div className="workspace-chat-scroll">
+                <div className="mt-6 space-y-3">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`workspace-message-card ${message.role === "user" ? "workspace-message-card--user" : "workspace-message-card--agent"} ${message.role === "agent" ? "workspace-message-card--hero" : ""}`}
+                    >
+                      <p className="text-sm font-semibold" style={{ color: message.role === "user" ? "white" : "var(--workspace-chat-text)" }}>
+                        {message.role === "user" ? firstName : "elevaIA"}
+                      </p>
+                      <p
+                        className="mt-3 whitespace-pre-line text-sm leading-7"
+                        style={{ color: message.role === "user" ? "rgba(255,255,255,0.88)" : "var(--workspace-chat-body)" }}
+                      >
+                        {renderMarkdown(message.text)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 grid gap-3">
+                  {[
+                    { label: "Crear primer post", artifact: "linkedin_post" as ArtifactType, icon: FilePenLine },
+                  ].map(({ label, artifact: nextArtifact, icon: Icon }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className="workspace-chat-action"
+                      onClick={() => void handleQuickAction(nextArtifact)}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-6 space-y-2 pr-1">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em]" style={{ color: "var(--workspace-chat-muted)" }}>
+                    Artefactos recientes
+                  </p>
+                  {recentArtifacts.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="workspace-history-item"
+                      onClick={() => openArtifact(item.artifact)}
+                    >
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: "var(--workspace-chat-text)" }}>{item.label}</p>
+                        <p className="mt-1 text-xs" style={{ color: "var(--workspace-chat-muted)" }}>Abrir artefacto en el canvas</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4" style={{ color: "var(--workspace-chat-muted)" }} />
+                    </button>
+                  ))}
+                </div>
+
+              </div>
+
+              <div className="workspace-chat-composer">
+                <textarea
+                  className="workspace-prompt"
+                  value={prompt}
+                  onChange={(event) => setPrompt(event.target.value)}
+                />
                 <button
-                  key={item.id}
                   type="button"
-                  className="workspace-history-item"
-                  onClick={() => setActiveModule(item.module)}
+                  className="workspace-send-btn"
+                  onClick={() => void handleAgentSubmit()}
+                  disabled={isAgentWorking}
                 >
-                  <div>
-                    <p className="text-sm font-semibold text-white">{item.title}</p>
-                    <p className="mt-1 text-xs text-white/55">{item.description}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-white/35" />
+                  {isAgentWorking ? "Pensando..." : <ArrowRight className="h-5 w-5" />}
                 </button>
-              ))}
-            </div>
+              </div>
+            </aside>
+          )}
 
-            <div className="mt-4 space-y-3">
-              <textarea
-                className="workspace-prompt"
-                placeholder="Escribe una instrucción..."
-                value={prompt}
-                onChange={(event) => setPrompt(event.target.value)}
-              />
-              <button
-                type="button"
-                className="workspace-send-btn"
-                onClick={() => void handleAgentSubmit()}
-                disabled={isAgentWorking}
-              >
-                {isAgentWorking ? "Pensando..." : <ArrowRight className="h-5 w-5" />}
-              </button>
-            </div>
-          </aside>
-
-          <section className="workspace-canvas-wrap min-w-0">
+          <section className="workspace-canvas-wrap workspace-canvas-wrap--primary min-w-0 transition-all duration-300 ease-in-out">
             <header className="workspace-canvas-header">
-              <div>
+              <div className={!chatOpen ? "workspace-canvas-header__content workspace-canvas-header__content--with-toggle" : "workspace-canvas-header__content"}>
                 <h2 className="text-[2rem] font-bold" style={{ color: "var(--canvas-text)" }}>
-                  {moduleMeta[activeModule].title}
+                  Canvas de trabajo
                 </h2>
                 <p className="mt-2 text-sm" style={{ color: "var(--canvas-muted)" }}>
-                  {moduleMeta[activeModule].description}
+                  El canvas sólo muestra artefactos cuando decides generarlos desde el chat o desde una acción rápida.
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <ThemeToggle />
+                {!chatOpen && (
+                  <button
+                    type="button"
+                    className="workspace-chat-toggle workspace-chat-toggle--floating"
+                    onClick={toggleChat}
+                    aria-label="Mostrar chat"
+                    title="Mostrar chat"
+                  >
+                    <PanelLeftOpen className="h-4 w-4" />
+                  </button>
+                )}
+                <div className="workspace-banner workspace-banner--compact">{banner}</div>
                 <details className="relative">
                   <summary className="workspace-avatar-button list-none">
                     <span>{buildAvatarLabel(userEmail)}</span>
@@ -788,14 +770,23 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
                     {routeTabs.map(({ label, module, icon: Icon }) => (
                       <NavLink
                         key={label}
-                        to={moduleMeta[module].route}
+                        to={module === "overview" ? "/workspace" : module === "posts" ? "/workspace/posts" : module === "ideas" ? "/workspace/ideas" : module === "resume" ? "/resume-upload" : module === "skills" ? "/skill-gap" : module === "roadmap" ? "/roadmap" : module === "profile" ? "/profile" : "/library"}
                         className="workspace-avatar-menu__item"
-                        onClick={() => setActiveModule(module)}
+                        onClick={() => {
+                          setActiveModule(module);
+                          if (module === "overview") {
+                            setArtifact("empty");
+                          }
+                        }}
                       >
                         <Icon className="h-4 w-4" />
                         {label}
                       </NavLink>
                     ))}
+                    <NavLink to="/settings" className="workspace-avatar-menu__item">
+                      <Settings className="h-4 w-4" />
+                      Configuración
+                    </NavLink>
                     <button type="button" className="workspace-avatar-menu__item" onClick={() => void signOut()}>
                       <FileText className="h-4 w-4" />
                       Cerrar sesión
@@ -805,28 +796,9 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
               </div>
             </header>
 
-            <div className="workspace-banner">{banner}</div>
-
-            <div className="workspace-canvas">
+            <div className="workspace-canvas workspace-canvas--artifact">
               <div className="workspace-canvas-grid" />
-              <div className={`workspace-canvas-stack workspace-board workspace-board--${activeModule}`}>
-                {isLoading ? (
-                  <ArtifactShell
-                    eyebrow="Cargando"
-                    title="Preparando tu lienzo"
-                    description="Estamos recuperando perfil, posts, ideas, CV y análisis desde tu workspace."
-                    gradient="var(--canvas-accent)"
-                  >
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {[1, 2, 3, 4].map((item) => (
-                        <div key={item} className="workspace-skeleton" />
-                      ))}
-                    </div>
-                  </ArtifactShell>
-                ) : (
-                  renderModuleArtifact()
-                )}
-              </div>
+              <div className="workspace-canvas-stack workspace-canvas-stack--artifact">{renderCanvas()}</div>
             </div>
           </section>
         </div>

@@ -8,6 +8,7 @@ interface CareerPanelProps {
   assessment: SkillAssessment;
   roadmap: RoadmapItem[];
   onUpdate: (assessment: SkillAssessment, roadmap: RoadmapItem[]) => Promise<void> | void;
+  hideHeader?: boolean;
 }
 
 export default function CareerPanel({
@@ -16,6 +17,7 @@ export default function CareerPanel({
   assessment,
   roadmap,
   onUpdate,
+  hideHeader = false,
 }: CareerPanelProps) {
   const [loading, setLoading] = useState(false);
 
@@ -35,12 +37,14 @@ export default function CareerPanel({
       <div className="min-w-0 space-y-6">
         <div className="surface min-w-0 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Skill Gap Analysis</h3>
-              <p className="mt-2 text-sm text-muted">
-                Cruza perfil, CV y señales de mercado para detectar oportunidades de mejora.
-              </p>
-            </div>
+            {!hideHeader ? (
+              <div>
+                <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Skill Gap Analysis</h3>
+                <p className="mt-2 text-sm text-muted">
+                  Cruza perfil, CV y señales de mercado para detectar oportunidades de mejora.
+                </p>
+              </div>
+            ) : <div />}
             <button type="button" className="btn-primary" onClick={handleAnalyze} disabled={loading}>
               {loading ? "Analizando..." : "Actualizar análisis"}
             </button>
@@ -70,10 +74,14 @@ export default function CareerPanel({
       </div>
 
       <div className="surface min-w-0 p-6">
-        <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Roadmap de Upskilling</h3>
-        <p className="mt-2 text-sm text-muted">
-          Acciones priorizadas para 30 días, 90 días y 6 meses con impacto esperado.
-        </p>
+        {!hideHeader && (
+          <div className="mb-5">
+            <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Roadmap de Upskilling</h3>
+            <p className="mt-2 text-sm text-muted">
+              Acciones priorizadas para 30 días, 90 días y 6 meses con impacto esperado.
+            </p>
+          </div>
+        )}
 
         <div className="mt-5 space-y-4">
           {roadmap.map((item) => (

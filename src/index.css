@@ -49,53 +49,49 @@
 
 :root,
 [data-theme="dark"] {
-  --workspace-frame: linear-gradient(135deg, #0f1723 0%, #111a25 26%, #f6f0e7 26%, #f7f3ed 100%);
-  --workspace-sidebar-bg: linear-gradient(180deg, #131d2f 0%, #101827 54%, #0e1522 100%);
-  --workspace-sidebar-border: rgba(255, 255, 255, 0.08);
-  --workspace-sidebar-muted: rgba(255, 255, 255, 0.62);
-  --workspace-chip-bg: rgba(255, 255, 255, 0.08);
-  --workspace-chip-border: rgba(255, 255, 255, 0.1);
-  --workspace-chip-hover: rgba(255, 255, 255, 0.14);
-  --workspace-agent-card: rgba(255, 255, 255, 0.08);
-  --workspace-user-card: linear-gradient(135deg, #3668ff 0%, #2958d8 100%);
-  --canvas-surface: rgba(255, 251, 247, 0.88);
-  --canvas-surface-strong: #fffdf9;
-  --canvas-border: rgba(73, 58, 44, 0.12);
-  --canvas-text: #1b2232;
-  --canvas-muted: #7b8497;
-  --canvas-accent: #3167f6;
-  --canvas-grid-line: rgba(77, 92, 120, 0.15);
-  --canvas-grid-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.68));
-  --canvas-shadow: 0 28px 60px rgba(30, 41, 59, 0.12);
-  --whiteboard-bg: linear-gradient(180deg, #f6f7fb 0%, #f2f4fa 100%);
-  --whiteboard-ink: #172033;
-  --whiteboard-card: rgba(255, 255, 255, 0.94);
-  --whiteboard-grid: rgba(110, 127, 167, 0.08);
-}
-
-[data-theme="dark"] {
-  --workspace-frame: linear-gradient(135deg, #09111c 0%, #0c1420 26%, #121a24 26%, #0e1720 100%);
-  --workspace-sidebar-bg: linear-gradient(180deg, #0d1320 0%, #0b111d 52%, #0a1019 100%);
-  --workspace-sidebar-border: rgba(255, 255, 255, 0.06);
-  --workspace-sidebar-muted: rgba(255, 255, 255, 0.6);
-  --workspace-chip-bg: rgba(255, 255, 255, 0.06);
-  --workspace-chip-border: rgba(255, 255, 255, 0.08);
-  --workspace-chip-hover: rgba(255, 255, 255, 0.1);
-  --workspace-agent-card: rgba(255, 255, 255, 0.06);
-  --workspace-user-card: linear-gradient(135deg, #2958d8 0%, #1d45b1 100%);
-  --canvas-surface: rgba(16, 25, 36, 0.78);
-  --canvas-surface-strong: #111b27;
-  --canvas-border: rgba(255, 255, 255, 0.08);
-  --canvas-text: #f4f7fb;
-  --canvas-muted: #9ba7bc;
-  --canvas-accent: #6e95ff;
-  --canvas-grid-line: rgba(145, 164, 202, 0.12);
-  --canvas-grid-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.03));
-  --canvas-shadow: 0 30px 80px rgba(0, 0, 0, 0.28);
-  --whiteboard-bg: linear-gradient(180deg, #0f1724 0%, #121c2c 100%);
-  --whiteboard-ink: #eef4ff;
-  --whiteboard-card: rgba(21, 30, 45, 0.94);
-  --whiteboard-grid: rgba(143, 166, 214, 0.08);
+  --workspace-frame: linear-gradient(135deg, var(--bg-accent) 0%, var(--bg) 100%);
+  --workspace-sidebar-bg: var(--panel-strong);
+  --workspace-sidebar-border: var(--border);
+  --workspace-sidebar-muted: var(--text-tertiary);
+  --workspace-chat-surface: var(--panel);
+  --workspace-chat-border: var(--border);
+  --workspace-chat-text: var(--text-primary);
+  --workspace-chat-body: var(--text-secondary);
+  --workspace-chat-muted: var(--text-tertiary);
+  --workspace-chip-bg: var(--panel-muted);
+  --workspace-chip-border: var(--border);
+  --workspace-chip-hover: var(--panel);
+  --workspace-agent-card: var(--panel-strong);
+  --workspace-user-card: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  --workspace-chat-action-bg: color-mix(in srgb, var(--panel-strong) 85%, transparent);
+  --workspace-chat-action-hover: var(--panel-strong);
+  --workspace-chat-action-border: var(--border);
+  --workspace-history-item-bg: color-mix(in srgb, var(--panel-strong) 60%, transparent);
+  --workspace-history-item-hover: color-mix(in srgb, var(--panel-strong) 90%, transparent);
+  --workspace-history-item-border: var(--border);
+  --workspace-prompt-bg: var(--panel-strong);
+  --workspace-prompt-border: var(--border);
+  --workspace-chat-toggle-bg: var(--panel-strong);
+  --workspace-chat-toggle-hover: var(--panel);
+  --workspace-chat-toggle-border: var(--border);
+  --workspace-empty-action-bg: var(--panel-strong);
+  --workspace-empty-action-hover: var(--panel);
+  --workspace-empty-action-border: var(--border);
+  --workspace-card-inset-shadow: inset 0 1px 0 var(--border);
+  --workspace-stat-card-inset-shadow: inset 0 1px 0 var(--border);
+  --canvas-surface: var(--panel);
+  --canvas-surface-strong: var(--panel-strong);
+  --canvas-border: var(--border);
+  --canvas-text: var(--text-primary);
+  --canvas-muted: var(--text-secondary);
+  --canvas-accent: var(--accent);
+  --canvas-grid-line: var(--border);
+  --canvas-grid-bg: transparent;
+  --canvas-shadow: var(--shadow);
+  --whiteboard-bg: var(--bg);
+  --whiteboard-ink: var(--text-primary);
+  --whiteboard-card: var(--panel-strong);
+  --whiteboard-grid: var(--border);
 }
 
 html {
@@ -259,6 +255,20 @@ a {
     border-radius: 0;
   }
 
+  .workspace-layout {
+    display: grid;
+    min-height: 100vh;
+    transition: all 300ms ease-in-out;
+  }
+
+  .workspace-layout--chat-open {
+    grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+  }
+
+  .workspace-layout--chat-closed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .workspace-sidebar {
     display: flex;
     flex-direction: column;
@@ -267,17 +277,63 @@ a {
     border-right: 1px solid var(--workspace-sidebar-border);
   }
 
+  .workspace-sidebar--chat {
+    padding-inline: 1.25rem;
+    background: var(--workspace-chat-surface);
+    border-right: 1px solid var(--workspace-chat-border);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.22);
+  }
+
+  .workspace-chat-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .workspace-chat-scroll {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding-right: 0.25rem;
+  }
+
+  .workspace-chat-composer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(110, 132, 179, 0.12);
+  }
+
+  .workspace-chat-toggle {
+    background: var(--workspace-chat-toggle-bg);
+    color: var(--workspace-chat-text);
+    border: 1px solid var(--workspace-chat-toggle-border);
+    box-shadow: 0 10px 24px rgba(50, 73, 120, 0.08);
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-2xl transition duration-200 hover:-translate-y-0.5;
+  }
+
+  .workspace-chat-toggle:hover {
+    background: var(--workspace-chat-toggle-hover);
+  }
+
+  .workspace-chat-toggle--floating {
+    position: absolute;
+    top: 1.25rem;
+    left: 1.25rem;
+    z-index: 3;
+  }
+
   .workspace-new-btn {
-    background: linear-gradient(135deg, #3f73ff 0%, #3167f6 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
     color: white;
-    box-shadow: 0 16px 30px rgba(49, 103, 246, 0.25);
+    box-shadow: 0 16px 30px color-mix(in srgb, var(--accent) 25%, transparent);
     @apply inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5;
   }
 
   .workspace-search {
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(68, 145, 255, 0.8);
-    box-shadow: inset 0 0 0 1px rgba(68, 145, 255, 0.15);
+    border: 1px solid color-mix(in srgb, var(--accent) 80%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 15%, transparent);
     @apply flex items-center gap-3 rounded-2xl px-4 py-3;
   }
 
@@ -308,29 +364,53 @@ a {
   .workspace-message-card {
     border-radius: 1.35rem;
     padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(110, 132, 179, 0.12);
   }
 
   .workspace-message-card--agent {
     background: var(--workspace-agent-card);
-    box-shadow: inset 3px 0 0 rgba(68, 145, 255, 0.92);
+    box-shadow:
+      inset 3px 0 0 var(--accent),
+      0 10px 24px rgba(50, 73, 120, 0.07);
   }
 
   .workspace-message-card--user {
     background: var(--workspace-user-card);
-    box-shadow: 0 16px 30px rgba(41, 88, 216, 0.24);
+    box-shadow: 0 16px 30px color-mix(in srgb, var(--accent) 24%, transparent);
+  }
+
+  .workspace-message-card--hero {
+    padding: 1.35rem;
+    border-color: color-mix(in srgb, var(--accent) 18%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--accent),
+      0 18px 32px rgba(50, 73, 120, 0.12);
+  }
+
+  .workspace-chat-action {
+    width: 100%;
+    text-align: left;
+    background: var(--workspace-chat-action-bg);
+    color: var(--workspace-chat-text);
+    border: 1px solid var(--workspace-chat-action-border);
+    box-shadow: 0 10px 24px rgba(50, 73, 120, 0.05);
+    @apply inline-flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5;
+  }
+
+  .workspace-chat-action:hover {
+    background: var(--workspace-chat-action-hover);
   }
 
   .workspace-history-item {
     width: 100%;
     text-align: left;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--workspace-history-item-bg);
+    border: 1px solid var(--workspace-history-item-border);
     @apply flex items-center justify-between gap-3 rounded-2xl px-4 py-3 transition duration-200 hover:-translate-y-0.5;
   }
 
   .workspace-history-item:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--workspace-history-item-hover);
   }
 
   .workspace-prompt {
@@ -338,21 +418,21 @@ a {
     width: 100%;
     resize: vertical;
     border-radius: 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--workspace-prompt-border);
+    background: var(--workspace-prompt-bg);
     padding: 1rem;
-    color: white;
+    color: var(--workspace-chat-text);
     outline: none;
   }
 
   .workspace-prompt::placeholder {
-    color: rgba(255, 255, 255, 0.42);
+    color: var(--workspace-chat-muted);
   }
 
   .workspace-send-btn {
     width: 100%;
     border: 0;
-    background: linear-gradient(135deg, #3f73ff 0%, #3167f6 100%);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
     color: white;
     @apply inline-flex items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60;
   }
@@ -363,9 +443,23 @@ a {
     @apply flex flex-col;
   }
 
+  .workspace-canvas-wrap--primary {
+    border-left: 1px solid rgba(255, 255, 255, 0.04);
+    min-width: 0;
+  }
+
   .workspace-canvas-header {
     border-bottom: 1px solid var(--canvas-border);
+    position: relative;
     @apply flex flex-col gap-4 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-7;
+  }
+
+  .workspace-canvas-header__content {
+    min-width: 0;
+  }
+
+  .workspace-canvas-header__content--with-toggle {
+    padding-left: 3.5rem;
   }
 
   .workspace-avatar-button {
@@ -373,7 +467,7 @@ a {
     height: 3rem;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.85);
-    background: linear-gradient(135deg, #ff8db3 0%, #3167f6 100%);
+    background: linear-gradient(135deg, #ff8db3 0%, var(--accent) 100%);
     color: white;
     cursor: pointer;
     @apply inline-flex items-center justify-center text-sm font-bold shadow-lg;
@@ -412,11 +506,20 @@ a {
     @apply rounded-2xl px-4 py-3 text-sm md:mx-7;
   }
 
+  .workspace-banner--compact {
+    margin: 0;
+    max-width: 26rem;
+  }
+
   .workspace-canvas {
     position: relative;
     flex: 1;
     padding: 1rem 1.5rem 1.5rem;
     overflow: auto;
+  }
+
+  .workspace-canvas--artifact {
+    padding-top: 1.5rem;
   }
 
   .workspace-canvas-grid {
@@ -441,6 +544,11 @@ a {
     padding: 1.5rem 0.75rem 4rem;
   }
 
+  .workspace-canvas-stack--artifact {
+    min-height: calc(100vh - 12rem);
+    align-content: start;
+  }
+
   .workspace-artifact {
     position: relative;
     background: var(--whiteboard-card);
@@ -448,8 +556,13 @@ a {
     color: var(--whiteboard-ink);
     box-shadow:
       0 24px 60px rgba(27, 39, 66, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      var(--workspace-card-inset-shadow);
     @apply rounded-[2rem] p-6 md:p-8;
+  }
+
+  .workspace-artifact--product {
+    max-width: 1040px;
+    min-height: 540px;
   }
 
   .workspace-artifact::after {
@@ -464,7 +577,7 @@ a {
   .workspace-mini-card {
     background: color-mix(in srgb, var(--whiteboard-card) 96%, #eef3ff 4%);
     border: 1px solid color-mix(in srgb, var(--whiteboard-ink) 10%, transparent);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    box-shadow: var(--workspace-card-inset-shadow);
     @apply rounded-[1.4rem] p-5;
   }
 
@@ -473,7 +586,7 @@ a {
     border: 1px solid rgba(123, 145, 187, 0.18);
     box-shadow:
       0 14px 30px rgba(64, 87, 133, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      var(--workspace-stat-card-inset-shadow);
     min-width: 0;
     @apply rounded-[1.4rem] p-5;
   }
@@ -531,69 +644,30 @@ a {
     animation: workspace-pulse 1.4s ease infinite;
   }
 
-  .workspace-board {
-    align-content: start;
-    min-height: calc(100vh - 13rem);
+  .workspace-empty-canvas {
+    min-height: calc(100vh - 14rem);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .workspace-board .workspace-artifact .eyebrow {
-    font-family: "Manrope", system-ui, sans-serif;
-    letter-spacing: 0.22em;
-    color: #5577c8 !important;
-  }
-
-  .workspace-board .workspace-artifact h3,
-  .workspace-board .workspace-artifact h4 {
-    font-family: "Manrope", system-ui, sans-serif;
-    letter-spacing: -0.04em;
-    color: var(--whiteboard-ink) !important;
-  }
-
-  .workspace-board .workspace-artifact p,
-  .workspace-board .workspace-artifact li,
-  .workspace-board .workspace-artifact span {
-    color: color-mix(in srgb, var(--whiteboard-ink) 74%, transparent) !important;
-  }
-
-  .workspace-board .workspace-artifact:nth-child(odd) {
-    transform: rotate(-0.15deg);
-  }
-
-  .workspace-board .workspace-artifact:nth-child(even) {
-    transform: rotate(0.12deg);
-  }
-
-  .workspace-board--overview {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-auto-rows: minmax(80px, auto);
-  }
-
-  .workspace-board--overview > .workspace-artifact {
-    grid-column: 1 / span 8;
-    min-height: 680px;
-    max-width: 960px;
-  }
-
-  .workspace-board--profile,
-  .workspace-board--posts,
-  .workspace-board--ideas,
-  .workspace-board--resume,
-  .workspace-board--skills,
-  .workspace-board--roadmap,
-  .workspace-board--library {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-  }
-
-  .workspace-board--profile > .workspace-artifact,
-  .workspace-board--posts > .workspace-artifact,
-  .workspace-board--ideas > .workspace-artifact,
-  .workspace-board--resume > .workspace-artifact,
-  .workspace-board--skills > .workspace-artifact,
-  .workspace-board--roadmap > .workspace-artifact,
-  .workspace-board--library > .workspace-artifact {
-    grid-column: 1 / span 6;
+  .workspace-empty-canvas__inner {
+    width: 100%;
     max-width: 760px;
-    min-height: 620px;
+    text-align: left;
+    padding: 2rem;
+  }
+
+  .workspace-empty-action {
+    background: var(--workspace-empty-action-bg);
+    color: var(--canvas-text);
+    border: 1px solid var(--workspace-empty-action-border);
+    box-shadow: 0 10px 24px rgba(50, 73, 120, 0.08);
+    @apply inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition duration-200 hover:-translate-y-0.5;
+  }
+
+  .workspace-empty-action:hover {
+    background: var(--workspace-empty-action-hover);
   }
 }
 
@@ -607,6 +681,15 @@ a {
 }
 
 @media (max-width: 1024px) {
+  .workspace-layout--chat-open,
+  .workspace-layout--chat-closed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-layout--chat-open .workspace-canvas-wrap {
+    display: none;
+  }
+
   .workspace-shell {
     padding: 0;
   }
@@ -627,20 +710,8 @@ a {
     inset-inline: 1.25rem;
   }
 
-  .workspace-board--overview > .workspace-artifact {
-    grid-column: 1 / span 10;
+  .workspace-artifact--product {
     max-width: none;
-    margin-top: 0;
-  }
-
-  .workspace-board--profile > .workspace-artifact,
-  .workspace-board--posts > .workspace-artifact,
-  .workspace-board--ideas > .workspace-artifact,
-  .workspace-board--resume > .workspace-artifact,
-  .workspace-board--skills > .workspace-artifact,
-  .workspace-board--roadmap > .workspace-artifact,
-  .workspace-board--library > .workspace-artifact {
-    grid-column: 1 / span 8;
   }
 }
 
@@ -680,33 +751,18 @@ a {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .workspace-board,
-  .workspace-board--overview,
-  .workspace-board--profile,
-  .workspace-board--posts,
-  .workspace-board--ideas,
-  .workspace-board--resume,
-  .workspace-board--skills,
-  .workspace-board--roadmap,
-  .workspace-board--library {
-    grid-template-columns: 1fr;
+  .workspace-artifact--product {
     min-height: auto;
   }
 
-  .workspace-board--overview > .workspace-artifact,
-  .workspace-board--profile > .workspace-artifact,
-  .workspace-board--posts > .workspace-artifact,
-  .workspace-board--ideas > .workspace-artifact,
-  .workspace-board--resume > .workspace-artifact,
-  .workspace-board--skills > .workspace-artifact,
-  .workspace-board--roadmap > .workspace-artifact,
-  .workspace-board--library > .workspace-artifact {
-    grid-column: auto;
-    grid-row: auto;
-    max-width: none;
-    min-height: auto;
-    margin-top: 0;
-    transform: none;
+  .workspace-chat-toggle--floating {
+    top: 1rem;
+    left: 1rem;
+  }
+
+  .workspace-canvas-header__content--with-toggle {
+    padding-left: 0;
+    padding-top: 3rem;
   }
 }
 

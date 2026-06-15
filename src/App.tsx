@@ -5,7 +5,14 @@ import AuthPage from "./pages/AuthPage";
 import LandingPage from "./pages/LandingPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import ProfileAnalysisLoadingPage from "./pages/ProfileAnalysisLoadingPage";
+import SettingsPage from "./pages/SettingsPage";
 import WorkspacePage from "./pages/WorkspacePage";
+import ProfilePage from "./pages/ProfilePage";
+import CVPage from "./pages/CVPage";
+import SkillGapPage from "./pages/SkillGapPage";
+import RoadmapPage from "./pages/RoadmapPage";
+import LibraryPage from "./pages/LibraryPage";
+import SkillDetailPage from "./pages/SkillDetailPage";
 import { loadUserProfile, loadUserProfileAnalysis } from "./services/dashboardService";
 import { hasProfileAnalysis, isProfessionalProfileComplete } from "./utils/profile";
 
@@ -168,7 +175,7 @@ export default function App() {
         path="/profile"
         element={
           <ProtectedRoute allow={["ready"]}>
-            <WorkspacePage initialModule="profile" />
+            <ProfilePage />
           </ProtectedRoute>
         }
       />
@@ -176,7 +183,7 @@ export default function App() {
         path="/resume-upload"
         element={
           <ProtectedRoute allow={["ready"]}>
-            <WorkspacePage initialModule="resume" />
+            <CVPage />
           </ProtectedRoute>
         }
       />
@@ -184,7 +191,7 @@ export default function App() {
         path="/skill-gap"
         element={
           <ProtectedRoute allow={["ready"]}>
-            <WorkspacePage initialModule="skills" />
+            <SkillGapPage />
           </ProtectedRoute>
         }
       />
@@ -192,7 +199,15 @@ export default function App() {
         path="/roadmap"
         element={
           <ProtectedRoute allow={["ready"]}>
-            <WorkspacePage initialModule="roadmap" />
+            <RoadmapPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/skill/:skillName"
+        element={
+          <ProtectedRoute allow={["ready"]}>
+            <SkillDetailPage />
           </ProtectedRoute>
         }
       />
@@ -200,7 +215,7 @@ export default function App() {
         path="/library"
         element={
           <ProtectedRoute allow={["ready"]}>
-            <WorkspacePage initialModule="library" />
+            <LibraryPage />
           </ProtectedRoute>
         }
       />
@@ -217,6 +232,14 @@ export default function App() {
         element={
           <ProtectedRoute allow={["ready"]}>
             <WorkspacePage initialModule="ideas" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute allow={["ready"]}>
+            <SettingsPage />
           </ProtectedRoute>
         }
       />

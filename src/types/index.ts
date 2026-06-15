@@ -1,4 +1,5 @@
 export type PostStatus = "draft" | "published" | "archived";
+export type ThemePreference = "light" | "dark" | "system";
 
 export interface UserProfile {
   fullName: string;
@@ -81,4 +82,16 @@ export interface DashboardState {
   resume: ResumeAsset | null;
   assessment: SkillAssessment;
   roadmap: RoadmapItem[];
+}
+
+export interface UserSettings {
+  displayName: string;
+  preferredLanguage: string;
+  preferredAiTone: string;
+  responseDetailLevel: "brief" | "normal" | "detailed";
+  mainGoal: "Conseguir empleo" | "Atraer clientes" | "Construir autoridad" | "Networking" | "Aprender nuevas habilidades";
+  linkedinFrequency: "1 vez por semana" | "2 veces por semana" | "3 veces por semana" | "Diario";
+  favoriteContentStyle: "Storytelling" | "Técnico" | "Educativo" | "Opinión" | "Experiencias personales";
+  preferredCtaStyle: "Suave" | "Directo" | "Sin CTA";
+  theme: ThemePreference;
 }
