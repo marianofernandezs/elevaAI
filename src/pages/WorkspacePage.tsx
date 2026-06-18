@@ -15,8 +15,8 @@ import {
   UserCircle2,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { NavLink, useSearchParams } from "react-router-dom";
 import CareerPanel from "../components/career/CareerPanel";
 import IdeasPanel from "../components/dashboard/IdeasPanel";
 import PostGenerator from "../components/posts/PostGenerator";
@@ -34,6 +34,7 @@ import {
   generateLinkedInPost,
   generateRoadmap,
 } from "../services/aiService";
+import { userFacingMessages } from "../utils/userFacingMessages";
 
 type WorkspaceModule =
   | "overview"
@@ -204,6 +205,7 @@ function initialAgentMessage(name: string) {
 }
 
 export default function WorkspacePage({ initialModule = "overview" }: WorkspacePageProps) {
+  const [searchParams] = useSearchParams();
   const { signOut, userEmail } = useAuth();
   const {
     state,
@@ -223,6 +225,7 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
   const [prompt, setPrompt] = useState("");
   const [isAgentWorking, setIsAgentWorking] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const hasHandledInitialIntent = useRef(false);
 
   const toggleChat = () => setChatOpen((value) => !value);
 
@@ -240,6 +243,24 @@ export default function WorkspacePage({ initialModule = "overview" }: WorkspaceP
       },
     ]);
   }, [state.profile.fullName]);
+
+  useEffect(() => {
+    const initialIntent = searchParams.get("intent");
+    if (initialIntent !== "create_post" || hasHandledInitialIntent.current) {
+      return;
+    }
+
+    hasHandledInitialIntent.current = true;
+    openArtifact("linkedin_post");
+    setMessages((current) => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        role: "agent",
+        text: `${userFacingMessages.workspace.initialIntent}\n\nTe recomiendo contar quién eres, qué estás construyendo y qué tipo de oportunidades buscas.`,
+      },
+    ]);
+  }, [searchParams]);
 
   useEffect(() => {
     if (initialModule === "overview") {

@@ -17,6 +17,7 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ requiresEmailConfirmation: boolean }>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -109,6 +110,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
+        setUserId("");
+        setUserEmail("");
+      },
+      async deleteAccount() {
+        if (!hasSupabaseEnv || !supabase) {
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const key = window.localStorage.key(i);
+            if (key?.startsWith("career-linkedin-copilot-")) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach((key) => window.localStorage.removeItem(key));
+          
+          setUserId("");
+          setUserEmail("");
+          return;
+        }
+
+        const { error } = await supabase.rpc("delete_user");
+        if (error) {
+          captureAppError(error, { scope: "auth:deleteAccount" });
+          throw new Error("No pudimos eliminar tu cuenta. Intenta nuevamente.");
+        }
+
+        await supabase.auth.signOut();
         setUserId("");
         setUserEmail("");
       },

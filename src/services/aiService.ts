@@ -1,5 +1,7 @@
 import { captureAppError } from "../lib/sentry";
 import type { ContentIdea, GeneratedPost, ProfileAnalysis, RoadmapItem, SkillAssessment, UserProfile } from "../types";
+import { debugError, debugWarn } from "../utils/debugLogger";
+import { userFacingMessages } from "../utils/userFacingMessages";
 
 type AIProvider = "openrouter" | "openai" | "anthropic" | "gemini";
 
@@ -35,6 +37,7 @@ interface ProviderConfig {
 interface AIConnectionStatus {
   available: boolean;
   message: string;
+  debugMessage?: string;
 }
 
 interface SkillAssessmentPayload {
@@ -109,12 +112,14 @@ async function tryRemoteGeneration(prompt: string) {
 
     if (!response.ok) {
       const payloadText = await response.text();
+      const parsedReason =
+        response.status === 429
+          ? `OpenRouter devolvió rate limit para el modelo ${config.model}. ${parseOpenRouterErrorPayload(payloadText)}`
+          : `OpenRouter devolvió ${response.status}. ${parseOpenRouterErrorPayload(payloadText)}`;
+      debugWarn("Remote generation returned a non-ok status.", parsedReason);
       return {
         content: null,
-        errorReason:
-          response.status === 429
-            ? `OpenRouter devolvió rate limit para el modelo ${config.model}. ${parseOpenRouterErrorPayload(payloadText)}`
-            : `OpenRouter devolvió ${response.status}. ${parseOpenRouterErrorPayload(payloadText)}`,
+        errorReason: parsedReason,
       };
     }
 
@@ -128,6 +133,7 @@ async function tryRemoteGeneration(prompt: string) {
     };
   } catch (error) {
     captureAppError(error, { scope: "ai:openrouter" });
+    debugError("OpenRouter request failed.", error);
     return {
       content: null,
       errorReason: error instanceof Error ? error.message : "Error inesperado al conectar con OpenRouter.",
@@ -141,14 +147,16 @@ export async function checkAIConnection(): Promise<AIConnectionStatus> {
   if (config.provider !== "openrouter") {
     return {
       available: false,
-      message: `El proveedor configurado es ${config.provider}. La app usará fallback local hasta implementar ese proveedor.`,
+      message: userFacingMessages.ai.unavailable,
+      debugMessage: `Proveedor configurado: ${config.provider}.`,
     };
   }
 
   if (!config.apiKey) {
     return {
       available: false,
-      message: "No se cargó la API key de OpenRouter en Vite. Reinicia el servidor si acabas de editar el .env.",
+      message: userFacingMessages.ai.unavailable,
+      debugMessage: "No se detectó API key para OpenRouter.",
     };
   }
 
@@ -156,13 +164,15 @@ export async function checkAIConnection(): Promise<AIConnectionStatus> {
   if (!result.content) {
     return {
       available: false,
-      message: result.errorReason ?? "No pudimos validar OpenRouter. La UI seguirá usando fallback local.",
+      message: userFacingMessages.ai.checkError,
+      debugMessage: result.errorReason ?? "No pudimos validar OpenRouter.",
     };
   }
 
   return {
     available: true,
-    message: `OpenRouter respondió correctamente usando ${config.model}.`,
+    message: userFacingMessages.ai.available,
+    debugMessage: `OpenRouter respondió correctamente usando ${config.model}.`,
   };
 }
 

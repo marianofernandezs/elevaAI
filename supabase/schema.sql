@@ -259,3 +259,21 @@ drop trigger if exists set_user_settings_updated_at on public.user_settings;
 create trigger set_user_settings_updated_at
 before update on public.user_settings
 for each row execute function public.set_updated_at();
+
+create or replace function public.delete_user()
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  delete from public.user_profiles where user_id = auth.uid();
+  delete from public.generated_posts where user_id = auth.uid();
+  delete from public.profile_analyses where user_id = auth.uid();
+  delete from public.content_ideas where user_id = auth.uid();
+  delete from public.resumes where user_id = auth.uid();
+  delete from public.skill_assessments where user_id = auth.uid();
+  delete from public.learning_roadmaps where user_id = auth.uid();
+  delete from public.user_settings where user_id = auth.uid();
+  delete from auth.users where id = auth.uid();
+end;
+$$;

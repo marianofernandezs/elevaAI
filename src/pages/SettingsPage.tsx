@@ -8,6 +8,8 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { defaultUserSettings, loadUserSettings, saveUserSettings } from "../services/settingsService";
 import type { UserSettings } from "../types";
+import { debugError, isDebugModeEnabled } from "../utils/debugLogger";
+import { userFacingMessages } from "../utils/userFacingMessages";
 
 const localSettingsKey = "career-linkedin-copilot-settings";
 
@@ -96,14 +98,17 @@ function SelectField<T extends string>({
 }
 
 export default function SettingsPage() {
-  const { isAuthenticated, userId, userEmail, signOut } = useAuth();
+  const { isAuthenticated, userId, userEmail, signOut, deleteAccount } = useAuth();
   const { setTheme } = useTheme();
   const [localSettings, setLocalSettings] = useLocalStorage<UserSettings>(localSettingsKey, defaultUserSettings);
   const [settings, setSettings] = useState<UserSettings>(localSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [error, setError] = useState("");
+  const debugEnabled = isDebugModeEnabled();
 
   useEffect(() => {
     let ignore = false;
@@ -132,7 +137,8 @@ export default function SettingsPage() {
         }
       } catch (nextError) {
         if (!ignore) {
-          setError(nextError instanceof Error ? nextError.message : "No pudimos cargar tu configuración.");
+          debugError("Settings bootstrap failed.", nextError);
+          setError(userFacingMessages.settings.loadError);
         }
       } finally {
         if (!ignore) {
@@ -165,13 +171,10 @@ export default function SettingsPage() {
         await saveUserSettings(userId, settings);
       }
 
-      setFeedback("Configuración guardada correctamente.");
+      setFeedback(userFacingMessages.settings.saved);
     } catch (nextError) {
-      setError(
-        nextError instanceof Error
-          ? nextError.message
-          : "No pudimos guardar tu configuración. Intenta nuevamente.",
-      );
+      debugError("Settings save failed.", nextError);
+      setError(userFacingMessages.settings.saveError);
     } finally {
       setIsSaving(false);
     }
@@ -347,14 +350,30 @@ export default function SettingsPage() {
               </button>
               <button
                 type="button"
-                className="btn-secondary gap-2 justify-center opacity-60"
-                disabled
+                className="btn-secondary gap-2 justify-center"
+                style={{ color: "#ef4444", borderColor: "rgba(239, 68, 68, 0.2)" }}
+                onClick={() => setShowDeleteConfirm(true)}
               >
                 <AlertTriangle className="h-4 w-4" />
                 Eliminar cuenta
               </button>
             </div>
           </Section>
+
+          {debugEnabled ? (
+            <Section
+              icon={AlertTriangle}
+              title="Panel debug"
+              description="Este bloque solo aparece en desarrollo o cuando `VITE_ENABLE_DEBUG_PANEL=true`."
+            >
+              <div className="soft-card p-4 text-sm leading-7 text-muted">
+                <p><strong>Modo debug:</strong> activo</p>
+                <p><strong>Usuario:</strong> {userId ?? "sin sesión"}</p>
+                <p><strong>Persistencia remota:</strong> {userId && userId !== "local-user" ? "habilitada" : "modo local"}</p>
+                <p><strong>Flag:</strong> {String(import.meta.env.VITE_ENABLE_DEBUG_PANEL ?? "false")}</p>
+              </div>
+            </Section>
+          ) : null}
 
           <div className="flex justify-end">
             <button type="button" className="btn-primary gap-2" onClick={() => void handleSave()} disabled={isSaving || isLoading}>
@@ -364,6 +383,48 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="surface w-full max-w-md scale-100 p-6 shadow-2xl md:p-8 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 text-red-500">
+              <AlertTriangle className="h-6 w-6" />
+              <h3 className="text-xl font-bold">Eliminar cuenta</h3>
+            </div>
+            <p className="mt-4 text-sm leading-6 text-muted">
+              ¿Estás seguro de que deseas eliminar tu cuenta permanentemente? Esta acción borrará todos tus datos, perfiles, análisis y posts generados. No se puede deshacer.
+            </p>
+            <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                className="btn-secondary justify-center"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="btn-primary justify-center"
+                style={{ background: "#ef4444", color: "white", borderColor: "#ef4444" }}
+                onClick={async () => {
+                  setIsDeleting(true);
+                  try {
+                    await deleteAccount();
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "Error al eliminar la cuenta");
+                    setIsDeleting(false);
+                    setShowDeleteConfirm(false);
+                  }
+                }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppShell>
   );
 }
