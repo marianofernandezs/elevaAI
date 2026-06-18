@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage";
+import InitialDiagnosisPage from "./pages/InitialDiagnosisPage";
 import LandingPage from "./pages/LandingPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import ProfileAnalysisLoadingPage from "./pages/ProfileAnalysisLoadingPage";
@@ -152,6 +153,14 @@ export default function App() {
         element={
           <ProtectedRoute allow={["needs_profile"]}>
             <OnboardingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/initial-diagnosis"
+        element={
+          <ProtectedRoute allow={["ready"]}>
+            <InitialDiagnosisPage />
           </ProtectedRoute>
         }
       />

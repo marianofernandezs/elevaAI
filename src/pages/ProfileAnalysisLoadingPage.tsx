@@ -57,8 +57,8 @@ export default function ProfileAnalysisLoadingPage() {
         await saveInitialProfileAnalysis(analysis);
         if (!ignore) {
           setActiveStep(loadingSteps.length - 1);
-          setStatusText("Listo. Entrando a tu workspace...");
-          window.setTimeout(() => navigate("/workspace", { replace: true }), 700);
+          setStatusText("Listo. Redirigiendo a tu diagnóstico...");
+          window.setTimeout(() => navigate("/initial-diagnosis", { replace: true }), 700);
         }
       } catch {
         if (!ignore) {
