@@ -62,6 +62,7 @@ function Field({
   multiline = false,
   type = "text",
   onHelp,
+  name,
 }: {
   label: string;
   value: string;
@@ -71,6 +72,7 @@ function Field({
   multiline?: boolean;
   type?: string;
   onHelp: () => void;
+  name?: string;
 }) {
   return (
     <label className="block">
@@ -92,6 +94,8 @@ function Field({
       </div>
       {multiline ? (
         <textarea
+          id={name}
+          name={name}
           className="input mt-2 min-h-[132px] resize-y"
           value={value}
           placeholder={placeholder}
@@ -99,6 +103,8 @@ function Field({
         />
       ) : (
         <input
+          id={name}
+          name={name}
           className="input mt-2"
           type={type}
           value={value}
@@ -122,11 +128,22 @@ export default function OnboardingPage() {
   const [assistantField, setAssistantField] = useState<keyof UserProfile | null>(null);
   const [assistantHelp, setAssistantHelp] = useState<OnboardingHelpResponse | null>(null);
   const [isAssistantLoading, setIsAssistantLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const progress = useMemo(() => ((step + 1) / stepMeta.length) * 100, [step]);
 
   useEffect(() => {
-    setProfile(state.profile);
+    setProfile((current) => {
+      const next = { ...current };
+      let changed = false;
+      for (const k of Object.keys(state.profile) as Array<keyof UserProfile>) {
+        if (!current[k] && state.profile[k]) {
+          next[k] = state.profile[k];
+          changed = true;
+        }
+      }
+      return changed ? next : current;
+    });
   }, [state.profile]);
 
   if (!isAuthenticated) {
@@ -178,9 +195,12 @@ export default function OnboardingPage() {
     }
 
     setIsSubmitting(true);
+    setSubmitError("");
     try {
       await saveProfile(profile);
       navigate("/profile-analysis-loading", { replace: true });
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Hubo un error al procesar tu perfil. Por favor, intenta de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -263,6 +283,7 @@ export default function OnboardingPage() {
             {step === 0 && (
               <>
                 <Field
+                  name="fullName"
                   label="Nombre completo"
                   value={profile.fullName}
                   placeholder="Ej: Mariano Simón Fernandez"
@@ -270,6 +291,7 @@ export default function OnboardingPage() {
                   onHelp={() => void openAssistant("fullName", "Nombre completo")}
                 />
                 <Field
+                  name="profession"
                   label="Profesión"
                   value={profile.profession}
                   placeholder="Ej: Ingeniero Civil Informático"
@@ -277,6 +299,7 @@ export default function OnboardingPage() {
                   onHelp={() => void openAssistant("profession", "Profesión")}
                 />
                 <Field
+                  name="industry"
                   label="Industria"
                   value={profile.industry}
                   placeholder="Ej: Software"
@@ -285,6 +308,7 @@ export default function OnboardingPage() {
                 />
                 <div className="grid gap-5 md:grid-cols-2">
                   <Field
+                    name="country"
                     label="País"
                     value={profile.country}
                     placeholder="Ej: Chile"
@@ -292,6 +316,7 @@ export default function OnboardingPage() {
                     onHelp={() => void openAssistant("country", "País")}
                   />
                   <Field
+                    name="yearsOfExperience"
                     label="Años de experiencia"
                     value={profile.yearsOfExperience}
                     placeholder="Ej: 3"
@@ -306,6 +331,7 @@ export default function OnboardingPage() {
             {step === 1 && (
               <>
                 <Field
+                  name="targetAudience"
                   label="Audiencia objetivo"
                   value={profile.targetAudience}
                   placeholder="Ej: Recruiters, líderes técnicos, profesionales de tecnología"
@@ -314,6 +340,7 @@ export default function OnboardingPage() {
                   onHelp={() => void openAssistant("targetAudience", "Audiencia objetivo")}
                 />
                 <Field
+                  name="careerGoal"
                   label="Objetivo profesional"
                   value={profile.careerGoal}
                   placeholder="Ej: Posicionarme en la industria del software"
@@ -322,6 +349,7 @@ export default function OnboardingPage() {
                   onHelp={() => void openAssistant("careerGoal", "Objetivo profesional")}
                 />
                 <Field
+                  name="linkedInUrl"
                   label="URL de LinkedIn"
                   value={profile.linkedInUrl}
                   placeholder="https://www.linkedin.com/in/..."
@@ -335,6 +363,7 @@ export default function OnboardingPage() {
             {step === 2 && (
               <>
                 <Field
+                  name="personalBrandGoal"
                   label="Objetivo de marca personal"
                   value={profile.personalBrandGoal}
                   placeholder="Ej: Publicar contenido consistente que atraiga oportunidades"
@@ -343,6 +372,7 @@ export default function OnboardingPage() {
                   onHelp={() => void openAssistant("personalBrandGoal", "Objetivo de marca personal")}
                 />
                 <Field
+                  name="communicationStyle"
                   label="Estilo de comunicación"
                   value={profile.communicationStyle}
                   placeholder="Ej: Cercano, estratégico y accionable"
@@ -351,6 +381,7 @@ export default function OnboardingPage() {
                   onHelp={() => void openAssistant("communicationStyle", "Estilo de comunicación")}
                 />
                 <Field
+                  name="contentTopics"
                   label="Temas de contenido"
                   value={profile.contentTopics}
                   placeholder="Ej: Desarrollo de software, IA, carrera profesional"
@@ -363,6 +394,11 @@ export default function OnboardingPage() {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between">
+            {submitError && (
+              <div className="w-full rounded-xl bg-red-500/10 p-3 text-sm text-red-500 mb-4 sm:mb-0 sm:col-span-2">
+                {submitError}
+              </div>
+            )}
             <button
               type="button"
               className="btn-secondary"
