@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import AuthPage from "./pages/AuthPage";
 import InitialDiagnosisPage from "./pages/InitialDiagnosisPage";
@@ -47,11 +47,13 @@ function ProtectedRoute({
   allow: FlowStatus[];
 }) {
   const { isAuthenticated, isLoading, userId } = useAuth();
+  const location = useLocation();
   const [isChecking, setIsChecking] = useState(true);
   const [flowStatus, setFlowStatus] = useState<FlowStatus>("needs_profile");
 
   useEffect(() => {
     let ignore = false;
+    setIsChecking(true);
 
     async function resolveFlowStatus() {
       if (!isAuthenticated) {
@@ -92,7 +94,7 @@ function ProtectedRoute({
         } else {
           setFlowStatus("ready");
         }
-      } catch {
+      } catch (err) {
         if (!ignore) {
           setFlowStatus("needs_profile");
         }
@@ -108,7 +110,7 @@ function ProtectedRoute({
     return () => {
       ignore = true;
     };
-  }, [isAuthenticated, userId]);
+  }, [isAuthenticated, userId, location.pathname]);
 
   if (isLoading || isChecking) {
     return (
