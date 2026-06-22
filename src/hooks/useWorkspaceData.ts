@@ -8,13 +8,16 @@ import {
   removeGeneratedPost,
   replaceContentIdeas,
   saveAssessmentAndRoadmap,
+  saveProfileAnalysis,
   saveUserProfile,
   updateGeneratedPostStatus,
   uploadResume,
 } from "../services/dashboardService";
 import { checkAIConnection } from "../services/aiService";
+import { debugError, debugLog } from "../utils/debugLogger";
 import { initialDashboardState } from "../utils/mockData";
 import { isProfessionalProfileComplete } from "../utils/profile";
+import { getGenericUserError, userFacingMessages } from "../utils/userFacingMessages";
 
 export function useWorkspaceData() {
   const { userId } = useAuth();
@@ -24,7 +27,7 @@ export function useWorkspaceData() {
   );
   const [state, setState] = useState<DashboardState>(cachedState);
   const [isLoading, setIsLoading] = useState(true);
-  const [banner, setBanner] = useState("Conectando tu workspace con Supabase y validando la sesión...");
+  const [banner, setBanner] = useState<string>(userFacingMessages.workspace.connecting);
 
   useEffect(() => {
     setCachedState(state);
@@ -44,7 +47,7 @@ export function useWorkspaceData() {
       if (userId === "local-user") {
         if (!ignore) {
           setIsLoading(false);
-          setBanner("Modo local activo. Puedes probar onboarding y workspace sin Supabase.");
+          setBanner(userFacingMessages.workspace.localMode);
         }
         return;
       }
@@ -58,11 +61,12 @@ export function useWorkspaceData() {
 
         if (!ignore) {
           setState(nextState);
-          setBanner(`Workspace conectado. ${aiStatus.message}`);
+          setBanner(aiStatus.message);
         }
       } catch (error) {
         if (!ignore) {
-          setBanner(error instanceof Error ? error.message : "No pudimos cargar tu información.");
+          debugError("Workspace bootstrap failed.", error);
+          setBanner(getGenericUserError("workspace"));
         }
       } finally {
         if (!ignore) {
@@ -85,18 +89,30 @@ export function useWorkspaceData() {
 
         if (userId && userId !== "local-user") {
           await saveUserProfile(userId, profile);
-          setBanner("Perfil actualizado y persistido en Supabase.");
+          setBanner(userFacingMessages.workspace.profileSaved);
           return;
         }
 
-        setBanner("Perfil actualizado en modo local.");
+        setBanner(userFacingMessages.workspace.profileSaved);
+      },
+      async saveInitialProfileAnalysis(profileAnalysis: NonNullable<DashboardState["profileAnalysis"]>) {
+        setState((current) => ({ ...current, profileAnalysis }));
+
+        if (userId && userId !== "local-user") {
+          await saveProfileAnalysis(userId, profileAnalysis);
+          debugLog("Initial profile analysis saved remotely.");
+          setBanner(userFacingMessages.workspace.analysisSaved);
+          return;
+        }
+
+        setBanner(userFacingMessages.workspace.analysisSaved);
       },
       async createPost(post: GeneratedPost) {
         const persistedPost =
           userId && userId !== "local-user" ? await createGeneratedPost(userId, post) : post;
 
         setState((current) => ({ ...current, posts: [persistedPost, ...current.posts] }));
-        setBanner("Nuevo post generado y guardado.");
+        setBanner(userFacingMessages.workspace.postCreated);
       },
       async setPostStatus(id: string, status: PostStatus) {
         if (userId && userId !== "local-user") {
@@ -107,7 +123,7 @@ export function useWorkspaceData() {
           ...current,
           posts: current.posts.map((post) => (post.id === id ? { ...post, status } : post)),
         }));
-        setBanner(`Estado actualizado a ${status}.`);
+        setBanner(`Actualizamos el estado del post a ${status}.`);
       },
       async deletePost(id: string) {
         if (userId && userId !== "local-user") {
@@ -118,24 +134,24 @@ export function useWorkspaceData() {
           ...current,
           posts: current.posts.filter((post) => post.id !== id),
         }));
-        setBanner("Post eliminado.");
+        setBanner(userFacingMessages.workspace.postDeleted);
       },
       async refreshIdeas(ideas: DashboardState["ideas"]) {
         const persistedIdeas =
           userId && userId !== "local-user" ? await replaceContentIdeas(userId, ideas) : ideas;
 
         setState((current) => ({ ...current, ideas: persistedIdeas }));
-        setBanner("Ideas regeneradas.");
+        setBanner(userFacingMessages.workspace.ideasRefreshed);
       },
       async uploadResumeFile(file: File) {
         if (userId && userId !== "local-user") {
           const resume = await uploadResume(userId, file);
           setState((current) => ({ ...current, resume }));
-          setBanner("CV subido a Supabase Storage y analizado.");
+          setBanner(userFacingMessages.workspace.resumeUploaded);
           return;
         }
 
-        throw new Error("El upload real requiere una sesión válida de Supabase.");
+        throw new Error(userFacingMessages.workspace.uploadRequiresSession);
       },
       async saveAssessment(
         assessment: DashboardState["assessment"],
@@ -146,7 +162,7 @@ export function useWorkspaceData() {
         }
 
         setState((current) => ({ ...current, assessment, roadmap }));
-        setBanner("Skill Gap Analysis y roadmap sincronizados.");
+        setBanner(userFacingMessages.workspace.assessmentSaved);
       },
       setBanner,
     }),

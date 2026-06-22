@@ -4,6 +4,7 @@ import type { UserProfile } from "../../types";
 interface ProfileFormProps {
   profile: UserProfile;
   onChange: (profile: UserProfile) => Promise<void> | void;
+  hideHeader?: boolean;
 }
 
 const fields: Array<{ key: keyof UserProfile; label: string; type?: string }> = [
@@ -20,7 +21,7 @@ const fields: Array<{ key: keyof UserProfile; label: string; type?: string }> = 
   { key: "linkedInUrl", label: "URL de LinkedIn", type: "url" },
 ];
 
-export default function ProfileForm({ profile, onChange }: ProfileFormProps) {
+export default function ProfileForm({ profile, onChange, hideHeader = false }: ProfileFormProps) {
   const [draft, setDraft] = useState(profile);
 
   useEffect(() => {
@@ -29,15 +30,17 @@ export default function ProfileForm({ profile, onChange }: ProfileFormProps) {
 
   return (
     <section className="surface min-w-0 p-6">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Perfil profesional</h3>
-          <p className="mt-2 text-sm text-muted">
-            Este contexto alimenta tus prompts, recomendaciones y análisis.
-          </p>
+      {!hideHeader && (
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Perfil profesional</h3>
+            <p className="mt-2 text-sm text-muted">
+              Este contexto alimenta tus prompts, recomendaciones y análisis.
+            </p>
+          </div>
+          <div className="badge-pill">Español-first</div>
         </div>
-        <div className="badge-pill">Español-first</div>
-      </div>
+      )}
 
       <div className="grid min-w-0 gap-4 md:grid-cols-2">
         {fields.map((field) => (

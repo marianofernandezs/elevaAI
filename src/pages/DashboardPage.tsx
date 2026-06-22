@@ -21,12 +21,14 @@ import {
   uploadResume,
 } from "../services/dashboardService";
 import { initialDashboardState } from "../utils/mockData";
+import { debugError } from "../utils/debugLogger";
+import { getGenericUserError, userFacingMessages } from "../utils/userFacingMessages";
 
 export default function DashboardPage() {
   const { signOut, userEmail, userId } = useAuth();
   const [state, setState] = useState<DashboardState>(initialDashboardState);
   const [isLoading, setIsLoading] = useState(true);
-  const [banner, setBanner] = useState("Conectando tu workspace con Supabase y validando la sesión...");
+  const [banner, setBanner] = useState<string>(userFacingMessages.workspace.connecting);
 
   useEffect(() => {
     let ignore = false;
@@ -34,7 +36,7 @@ export default function DashboardPage() {
     async function bootstrap() {
       if (!userId || userId === "local-user") {
         setIsLoading(false);
-        setBanner("Modo local activo. Configura Supabase para persistencia real entre sesiones.");
+        setBanner(userFacingMessages.workspace.localMode);
         return;
       }
 
@@ -44,11 +46,12 @@ export default function DashboardPage() {
         const aiStatus = await checkAIConnection();
         if (!ignore) {
           setState(nextState);
-          setBanner(`Dashboard conectado con Supabase. ${aiStatus.message}`);
+          setBanner(aiStatus.message);
         }
       } catch (error) {
         if (!ignore) {
-          setBanner(error instanceof Error ? error.message : "No pudimos cargar tu información.");
+          debugError("Dashboard bootstrap failed.", error);
+          setBanner(getGenericUserError("workspace"));
         }
       } finally {
         if (!ignore) {
@@ -70,9 +73,10 @@ export default function DashboardPage() {
         userId && userId !== "local-user" ? await createGeneratedPost(userId, post) : post;
 
       setState((current) => ({ ...current, posts: [persistedPost, ...current.posts] }));
-      setBanner("Nuevo post generado y guardado en Supabase.");
+      setBanner(userFacingMessages.workspace.postCreated);
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "No pudimos guardar el post.");
+      debugError("Post creation failed.", error);
+      setBanner(getGenericUserError("post"));
     }
   }
 
@@ -82,13 +86,14 @@ export default function DashboardPage() {
 
       if (userId && userId !== "local-user") {
         await saveUserProfile(userId, profile);
-        setBanner("Perfil actualizado y persistido en Supabase.");
+        setBanner(userFacingMessages.workspace.profileSaved);
         return;
       }
 
-      setBanner("Perfil actualizado en modo local.");
+      setBanner(userFacingMessages.workspace.profileSaved);
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "No pudimos guardar el perfil.");
+      debugError("Profile update failed.", error);
+      setBanner(getGenericUserError("profile"));
     }
   }
 
@@ -102,9 +107,10 @@ export default function DashboardPage() {
         ...current,
         posts: current.posts.map((post) => (post.id === id ? { ...post, status } : post)),
       }));
-      setBanner(`Estado actualizado a ${status} y sincronizado.`);
+      setBanner(`Actualizamos el estado del post a ${status}.`);
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "No pudimos actualizar el estado del post.");
+      debugError("Post status update failed.", error);
+      setBanner(getGenericUserError("post"));
     }
   }
 
@@ -118,9 +124,10 @@ export default function DashboardPage() {
         ...current,
         posts: current.posts.filter((post) => post.id !== id),
       }));
-      setBanner("Post eliminado de la biblioteca y de Supabase.");
+      setBanner(userFacingMessages.workspace.postDeleted);
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "No pudimos eliminar el post.");
+      debugError("Post deletion failed.", error);
+      setBanner(getGenericUserError("post"));
     }
   }
 
@@ -130,9 +137,10 @@ export default function DashboardPage() {
         userId && userId !== "local-user" ? await replaceContentIdeas(userId, ideas) : ideas;
 
       setState((current) => ({ ...current, ideas: persistedIdeas }));
-      setBanner("Ideas regeneradas y guardadas.");
+      setBanner(userFacingMessages.workspace.ideasRefreshed);
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "No pudimos guardar las ideas.");
+      debugError("Ideas refresh failed.", error);
+      setBanner(getGenericUserError("ideas"));
     }
   }
 
@@ -141,13 +149,14 @@ export default function DashboardPage() {
       if (userId && userId !== "local-user") {
         const resume = await uploadResume(userId, file);
         setState((current) => ({ ...current, resume }));
-        setBanner("CV subido a Supabase Storage y texto extraído correctamente.");
+        setBanner(userFacingMessages.workspace.resumeUploaded);
         return;
       }
 
-      setBanner("El upload real requiere una sesión válida de Supabase.");
+      setBanner(userFacingMessages.workspace.uploadRequiresSession);
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "No pudimos subir el CV.");
+      debugError("Resume upload failed.", error);
+      setBanner(getGenericUserError("resume"));
     }
   }
 
@@ -161,9 +170,10 @@ export default function DashboardPage() {
       }
 
       setState((current) => ({ ...current, assessment, roadmap }));
-      setBanner("Skill Gap Analysis y roadmap sincronizados.");
+      setBanner(userFacingMessages.workspace.assessmentSaved);
     } catch (error) {
-      setBanner(error instanceof Error ? error.message : "No pudimos guardar el análisis.");
+      debugError("Assessment update failed.", error);
+      setBanner(getGenericUserError("assessment"));
     }
   }
 
@@ -182,7 +192,7 @@ export default function DashboardPage() {
 
       {isLoading ? (
         <div className="surface p-6 text-sm font-semibold text-muted">
-          Cargando datos desde Supabase...
+          Preparando tu información...
         </div>
       ) : (
         <>

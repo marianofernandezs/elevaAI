@@ -1,5 +1,6 @@
-import { BarChart3, FileText, Lightbulb, LogOut, Menu, Sparkles, UserCircle2, X } from "lucide-react";
+import { BarChart3, Bot, BookOpen, FileText, LayoutDashboard, LogOut, Menu, Settings, Sparkles, Upload, UserCircle2, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { NavLink } from "react-router-dom";
 import ThemeToggle from "../ui/ThemeToggle";
 
 interface AppShellProps {
@@ -9,11 +10,13 @@ interface AppShellProps {
 }
 
 const navItems = [
-  { label: "Perfil", icon: UserCircle2 },
-  { label: "Posts", icon: FileText },
-  { label: "Ideas", icon: Lightbulb },
-  { label: "Career Growth", icon: BarChart3 },
-  { label: "Skill Gap", icon: Sparkles },
+  { label: "Workspace", href: "/workspace", icon: Bot },
+  { label: "Perfil", href: "/profile", icon: UserCircle2 },
+  { label: "CV", href: "/resume-upload", icon: Upload },
+  { label: "Skill Gap", href: "/skill-gap", icon: BarChart3 },
+  { label: "Roadmap", href: "/roadmap", icon: Sparkles },
+  { label: "Biblioteca", href: "/library", icon: BookOpen },
+  { label: "Configuración", href: "/settings", icon: Settings },
 ];
 
 export default function AppShell({ email, onSignOut, children }: AppShellProps) {
@@ -21,19 +24,35 @@ export default function AppShell({ email, onSignOut, children }: AppShellProps) 
 
   const navContent = (
     <nav className="space-y-2">
-      {navItems.map(({ label, icon: Icon }) => (
-        <div
+      {navItems.map(({ label, href, icon: Icon }) => (
+        <NavLink
           key={label}
-          className="flex items-center gap-3 rounded-[1.4rem] border px-4 py-3 text-sm font-semibold"
-          style={{
-            borderColor: "var(--border)",
-            background: "color-mix(in srgb, var(--panel-strong) 70%, transparent)",
-            color: "var(--text-primary)",
-          }}
+          to={href}
+          onClick={() => setIsMobileNavOpen(false)}
+          className={({ isActive }) =>
+            `flex items-center gap-3 rounded-[1.4rem] border px-4 py-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 ${
+              isActive
+                ? "border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_12%,var(--panel-strong))] text-[var(--accent)]"
+                : "border-transparent text-muted hover:border-[var(--border)]"
+            }`
+          }
+          style={({ isActive }) =>
+            isActive
+              ? {}
+              : {
+                  borderColor: "var(--border)",
+                  background: "color-mix(in srgb, var(--panel-strong) 70%, transparent)",
+                  color: "var(--text-secondary)",
+                }
+          }
         >
-          <Icon className="h-4 w-4" style={{ color: "var(--accent)" }} />
-          {label}
-        </div>
+          {({ isActive }) => (
+            <>
+              <Icon className="h-4 w-4" style={{ color: isActive ? "var(--accent)" : "var(--text-secondary)" }} />
+              {label}
+            </>
+          )}
+        </NavLink>
       ))}
     </nav>
   );

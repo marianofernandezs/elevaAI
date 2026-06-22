@@ -1,4 +1,4 @@
-import type { UserProfile } from "../types";
+import type { ProfileAnalysis, UserProfile } from "../types";
 
 const requiredProfileKeys: Array<keyof UserProfile> = [
   "fullName",
@@ -19,4 +19,19 @@ export function isProfessionalProfileComplete(profile: UserProfile | null | unde
   }
 
   return requiredProfileKeys.every((key) => profile[key]?.trim().length > 0);
+}
+
+export function hasProfileAnalysis(analysis: ProfileAnalysis | null | undefined) {
+  if (!analysis) {
+    return false;
+  }
+
+  return [
+    analysis.professionalSummary,
+    analysis.niche,
+    analysis.industryContext,
+    analysis.careerGoalSummary,
+    analysis.initialRecommendation,
+    analysis.positioningStatement,
+  ].every((item) => item.trim().length > 0);
 }

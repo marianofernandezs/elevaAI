@@ -1,18 +1,22 @@
 import type { GeneratedPost, PostStatus } from "../../types";
+import { renderMarkdown } from "../../utils/markdown";
 
 interface PostLibraryProps {
   posts: GeneratedPost[];
   onUpdateStatus: (id: string, status: PostStatus) => Promise<void> | void;
   onDelete: (id: string) => Promise<void> | void;
+  hideHeader?: boolean;
 }
 
-export default function PostLibrary({ posts, onUpdateStatus, onDelete }: PostLibraryProps) {
+export default function PostLibrary({ posts, onUpdateStatus, onDelete, hideHeader = false }: PostLibraryProps) {
   return (
     <section className="surface min-w-0 p-6">
-      <div className="mb-5">
-        <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Biblioteca de posts</h3>
-        <p className="mt-2 text-sm text-muted">Edita estados, archiva ideas o limpia drafts sin perder contexto.</p>
-      </div>
+      {!hideHeader && (
+        <div className="mb-5">
+          <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Biblioteca de posts</h3>
+          <p className="mt-2 text-sm text-muted">Edita estados, archiva ideas o limpia drafts sin perder contexto.</p>
+        </div>
+      )}
 
       <div className="space-y-4">
         {posts.map((post) => (
@@ -21,7 +25,7 @@ export default function PostLibrary({ posts, onUpdateStatus, onDelete }: PostLib
               <div>
                 <p className="eyebrow">{post.type}</p>
                 <h4 className="mt-2 text-lg font-bold" style={{ color: "var(--text-primary)" }}>{post.title}</h4>
-                <p className="mt-2 text-sm text-muted">{post.hook}</p>
+                <p className="mt-2 text-sm text-muted">{renderMarkdown(post.hook)}</p>
               </div>
               <select
                 className="input w-full md:max-w-44"
@@ -34,7 +38,7 @@ export default function PostLibrary({ posts, onUpdateStatus, onDelete }: PostLib
               </select>
             </div>
 
-            <p className="mt-4 whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--text-secondary)" }}>{post.content}</p>
+            <p className="mt-4 whitespace-pre-wrap text-sm leading-7" style={{ color: "var(--text-secondary)" }}>{renderMarkdown(post.content)}</p>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap gap-2">
                 {post.hashtags.map((hashtag) => (

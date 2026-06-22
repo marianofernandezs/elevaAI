@@ -4,9 +4,10 @@ import type { ResumeAsset } from "../../types";
 interface ResumeUploaderProps {
   resume: ResumeAsset | null;
   onUpload: (file: File) => Promise<void>;
+  hideHeader?: boolean;
 }
 
-export default function ResumeUploader({ resume, onUpload }: ResumeUploaderProps) {
+export default function ResumeUploader({ resume, onUpload, hideHeader = false }: ResumeUploaderProps) {
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
@@ -19,12 +20,14 @@ export default function ResumeUploader({ resume, onUpload }: ResumeUploaderProps
 
   return (
     <section className="surface min-w-0 p-6">
-      <div className="mb-5">
-        <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Upload de CV</h3>
-        <p className="mt-2 text-sm text-muted">
-          MVP listo para conectar con Supabase Storage y extracción automática de texto.
-        </p>
-      </div>
+      {!hideHeader && (
+        <div className="mb-5">
+          <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Upload de CV</h3>
+          <p className="mt-2 text-sm text-muted">
+            MVP listo para conectar con Supabase Storage y extracción automática de texto.
+          </p>
+        </div>
+      )}
 
       <label
         className="flex min-h-48 cursor-pointer flex-col items-center justify-center rounded-[1.75rem] border border-dashed px-6 text-center transition hover:-translate-y-0.5"

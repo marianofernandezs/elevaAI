@@ -4,6 +4,7 @@ import type {
   ContentIdea,
   DashboardState,
   GeneratedPost,
+  ProfileAnalysis,
   PostStatus,
   ResumeAsset,
   RoadmapItem,
@@ -65,6 +66,24 @@ export async function loadUserProfile(userId: string): Promise<UserProfile | nul
   return mapProfileRecord(data as Record<string, unknown>);
 }
 
+export async function loadUserProfileAnalysis(userId: string): Promise<ProfileAnalysis | null> {
+  const client = ensureSupabase();
+  const { data, error } = await client
+    .from("profile_analyses")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    captureAppError(error, { scope: "dashboard:loadUserProfileAnalysis" });
+    throw new Error("No pudimos verificar el análisis inicial del perfil.");
+  }
+
+  return mapProfileAnalysisRecord(data as Record<string, unknown> | null | undefined);
+}
+
 function mapPostRecord(record: Record<string, unknown>): GeneratedPost {
   return {
     id: String(record.id),
@@ -122,6 +141,27 @@ function mapAssessmentRecord(record: Record<string, unknown> | null | undefined)
   };
 }
 
+function mapProfileAnalysisRecord(record: Record<string, unknown> | null | undefined): ProfileAnalysis | null {
+  if (!record) {
+    return null;
+  }
+
+  return {
+    professionalSummary: String(record.professional_summary ?? ""),
+    niche: String(record.niche ?? ""),
+    industryContext: String(record.industry_context ?? ""),
+    careerGoalSummary: String(record.career_goal_summary ?? ""),
+    linkedInOpportunities: Array.isArray(record.linkedin_opportunities)
+      ? record.linkedin_opportunities.map(String)
+      : [],
+    prioritySkills: Array.isArray(record.priority_skills) ? record.priority_skills.map(String) : [],
+    initialRecommendation: String(record.initial_recommendation ?? ""),
+    positioningStatement: String(record.positioning_statement ?? ""),
+    topOpportunities: Array.isArray(record.top_opportunities) ? record.top_opportunities.map(String) : [],
+    recommendedActions: Array.isArray(record.recommended_actions) ? record.recommended_actions.map(String) : [],
+  };
+}
+
 function mapRoadmapRecord(record: Record<string, unknown>): RoadmapItem {
   return {
     horizon: record.horizon as RoadmapItem["horizon"],
@@ -137,6 +177,7 @@ export async function loadDashboardState(userId: string): Promise<DashboardState
 
   const [
     profileResult,
+    profileAnalysisResult,
     postsResult,
     ideasResult,
     resumeResult,
@@ -144,6 +185,7 @@ export async function loadDashboardState(userId: string): Promise<DashboardState
     roadmapResult,
   ] = await Promise.all([
     client.from("user_profiles").select("*").eq("user_id", userId).maybeSingle(),
+    client.from("profile_analyses").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     client.from("generated_posts").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
     client.from("content_ideas").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
     client.from("resumes").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -151,7 +193,7 @@ export async function loadDashboardState(userId: string): Promise<DashboardState
     client.from("learning_roadmaps").select("*").eq("user_id", userId).order("created_at", { ascending: true }),
   ]);
 
-  const results = [profileResult, postsResult, ideasResult, resumeResult, assessmentResult, roadmapResult];
+  const results = [profileResult, profileAnalysisResult, postsResult, ideasResult, resumeResult, assessmentResult, roadmapResult];
   const failed = results.find((result) => result.error);
   if (failed?.error) {
     captureAppError(failed.error, { scope: "dashboard:load" });
@@ -160,6 +202,7 @@ export async function loadDashboardState(userId: string): Promise<DashboardState
 
   return {
     profile: mapProfileRecord(profileResult.data as Record<string, unknown> | null | undefined),
+    profileAnalysis: mapProfileAnalysisRecord(profileAnalysisResult.data as Record<string, unknown> | null | undefined),
     posts: (postsResult.data ?? []).map((record) => mapPostRecord(record as Record<string, unknown>)),
     ideas: (ideasResult.data ?? []).map((record) => mapIdeaRecord(record as Record<string, unknown>)),
     resume: mapResumeRecord(resumeResult.data as Record<string, unknown> | null | undefined, client),
@@ -193,6 +236,35 @@ export async function saveUserProfile(userId: string, profile: UserProfile) {
   if (error) {
     captureAppError(error, { scope: "dashboard:saveProfile" });
     throw new Error("No pudimos guardar tu perfil.");
+  }
+}
+
+export async function saveProfileAnalysis(userId: string, analysis: ProfileAnalysis) {
+  const client = ensureSupabase();
+
+  const { error: deleteError } = await client.from("profile_analyses").delete().eq("user_id", userId);
+  if (deleteError) {
+    captureAppError(deleteError, { scope: "dashboard:saveProfileAnalysis:delete" });
+    throw new Error("No pudimos preparar el análisis inicial del perfil.");
+  }
+
+  const { error } = await client.from("profile_analyses").insert({
+    user_id: userId,
+    professional_summary: analysis.professionalSummary,
+    niche: analysis.niche,
+    industry_context: analysis.industryContext,
+    career_goal_summary: analysis.careerGoalSummary,
+    linkedin_opportunities: analysis.linkedInOpportunities,
+    priority_skills: analysis.prioritySkills,
+    initial_recommendation: analysis.initialRecommendation,
+    positioning_statement: analysis.positioningStatement,
+    top_opportunities: analysis.topOpportunities,
+    recommended_actions: analysis.recommendedActions,
+  });
+
+  if (error) {
+    captureAppError(error, { scope: "dashboard:saveProfileAnalysis:insert" });
+    throw new Error("No pudimos guardar el análisis inicial del perfil.");
   }
 }
 

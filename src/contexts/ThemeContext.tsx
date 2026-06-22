@@ -6,35 +6,43 @@ import {
   useState,
   type ReactNode,
 } from "react";
-
-type ThemeMode = "light" | "dark";
+import type { ThemePreference } from "../types";
 
 interface ThemeContextValue {
-  theme: ThemeMode;
+  theme: ThemePreference;
   toggleTheme: () => void;
+  setTheme: (theme: ThemePreference) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 const themeStorageKey = "career-linkedin-copilot-theme";
 
-function getPreferredTheme(): ThemeMode {
+function getPreferredTheme(): ThemePreference {
   if (typeof window === "undefined") {
-    return "light";
+    return "system";
   }
 
   const storedTheme = window.localStorage.getItem(themeStorageKey);
-  if (storedTheme === "light" || storedTheme === "dark") {
-    return storedTheme;
+  if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") {
+    return storedTheme as ThemePreference;
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "system";
+}
+
+function resolveTheme(theme: ThemePreference) {
+  if (theme === "system") {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  return theme;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<ThemeMode>(getPreferredTheme);
+  const [theme, setTheme] = useState<ThemePreference>(getPreferredTheme);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.theme = resolveTheme(theme);
     window.localStorage.setItem(themeStorageKey, theme);
   }, [theme]);
 
@@ -42,8 +50,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => ({
       theme,
       toggleTheme() {
-        setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"));
+        setTheme((currentTheme) =>
+          currentTheme === "light" ? "dark" : currentTheme === "dark" ? "system" : "light",
+        );
       },
+      setTheme,
     }),
     [theme],
   );
