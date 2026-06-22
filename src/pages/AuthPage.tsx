@@ -7,8 +7,8 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("maria@careercopilot.io");
-  const [password, setPassword] = useState("demo12345");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -102,11 +102,11 @@ export default function AuthPage() {
           <div className="mt-8 space-y-5">
             <label>
               <span className="label">Email</span>
-              <input className="input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+              <input className="input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="nombre@ejemplo.com" required />
             </label>
             <label>
               <span className="label">Contraseña</span>
-              <input className="input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+              <input className="input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" required />
             </label>
           </div>
 
