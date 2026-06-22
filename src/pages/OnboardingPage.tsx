@@ -150,10 +150,6 @@ export default function OnboardingPage() {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!isLoading && profileComplete) {
-    return <Navigate to="/initial-diagnosis" replace />;
-  }
-
   async function openAssistant(field: keyof UserProfile, label: string, userFocus?: string) {
     setAssistantOpen(true);
     setAssistantField(field);

@@ -81,14 +81,6 @@ export default function ProfileAnalysisLoadingPage() {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!isLoading && !profileComplete) {
-    return <Navigate to="/onboarding" replace />;
-  }
-
-  if (hasProfileAnalysis(state.profileAnalysis)) {
-    return <Navigate to="/workspace" replace />;
-  }
-
   return (
     <div className="min-h-screen px-4 py-6 md:px-6 md:py-10">
       <div className="mx-auto mb-6 flex max-w-4xl justify-end">
